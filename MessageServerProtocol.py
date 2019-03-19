@@ -15,11 +15,11 @@ class MessageServerProtocol(Protocol):
 
     def dataReceived(self,data):
         connected = self.transport.getPeer().host
-        print('Client:', connected)
+        #print('Client:', connected)
         print('data:', data)
         
         #self.transport.write("connected")
         self.transport.loseConnection()
     
     def connectionLost(self, reason):
-	return
+        return
