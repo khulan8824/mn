@@ -27,11 +27,12 @@ def simpleTest():
     for h in net.hosts:
         if h.name.startswith('g'):
             h.sendCmd("python -m SimpleHTTPServer 8080 &")
-        elif h.name.startswith('h'):
-            print(h.IP())
-            h.sendCmd('python main.py '+h.IP()+' &')
+    #CLI(net)
+    
+    for h in net.hosts:
+        if h.name.startswith('h'):
+            h.sendCmd("python main.py "+h.IP())
     CLI(net)
-    #net.stop()
 
 if __name__ == "__main__":
     setLogLevel('info')

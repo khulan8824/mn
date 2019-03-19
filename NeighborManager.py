@@ -19,7 +19,7 @@ class NeighborManager:
     closeNeighbors = []
     gateways = []
     myAddress = ""
-    trshld = 0.7
+    trshld = 1
     cnt = 0
     
     
@@ -42,9 +42,9 @@ class NeighborManager:
         if int(code) != 200:
             return ""
         else:
-            with open('log'+self.myAddress,'a') as f:
-                f.write("{0},{1},{2},{3}\n".format(datetime.datetime.now(),str(address),str(lat), str(self.myAddress)))
-            return str(address)+":"+str(lat)+":"+self.myAddress
+            with open('log','a') as f:
+                f.write("{0},{1},{2},{3},{4}\n".format(datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),str(address),str(lat), str(self.myAddress), str(self.myAddress)))
+            return datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")+','+str(address)+","+str(lat)+","+self.myAddress
         #print('gw', address, ' lat', lat)
     
     def sense(self):
