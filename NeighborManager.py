@@ -12,12 +12,15 @@ from twisted.internet.protocol import ServerFactory, ClientFactory, Protocol
 
 import MessageServerProtocol as server
 import MessageClientProtocol as client
+import Gateway as gw
 
 class NeighborManager:
     neighborAddress= ""
     neighbors = []
     closeNeighbors = []
     gateways = []
+    gatewayTable = {}
+    actualTable={}
     myAddress = ""
     trshld = 1
     cnt = 0
@@ -34,24 +37,35 @@ class NeighborManager:
     def pingGateway(self,address):
         status = True
         cmd='''curl http://'''+address+''':8080/1Mb.dat -m 180 -w %{time_total},%{http_code} -o /dev/null -s'''
-        #print(cmd)
+        print(cmd)
         command = Popen(shlex.split(cmd),stdout=PIPE, stderr=PIPE)
         stdout, stderr = command.communicate()
+        print(stdout.decode("utf-8").split(','))
         lat, code = stdout.decode("utf-8").split(',')
         #print(lat, code)
         if int(code) != 200:
             return ""
         else:
+            self.setGatewayTable(datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"), 
+                                 address, float(lat), self.myAddress)
             with open('log','a') as f:
                 f.write("{0},{1},{2},{3},{4}\n".format(datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),str(address),str(lat), str(self.myAddress), str(self.myAddress)))
-            return datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")+','+str(address)+","+str(lat)+","+self.myAddress
-        #print('gw', address, ' lat', lat)
-    
+            return float(lat)
+        
+    def setGatewayTable(self, ts,address,latency,sender):
+        gateway = gw.Gateway(ts, address, latency, sender)
+        
+        if address != self.myAddress:
+            gateway.actualLatency  = self.pingGateway(address)
+            
+        self.gatewayTable[address] = gateway
+            
     def sense(self):
         gws = self.select2Random()
         txt = ""
         for gw in gws:
-            t = self.pingGateway(gw)
+            lat = self.pingGateway(gw)
+            t = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")+','+str(gw)+","+str(lat)+","+self.myAddress
             if txt =="":
                 txt += t
             else:
@@ -73,6 +87,8 @@ class NeighborManager:
         if self.cnt <20:            
             reactor.callLater(60, self.send)
             self.sense()
+            for gw in self.gatewayTable:
+                gw.printInformation()
         else:
             print("END")
             #sys.exit(0)

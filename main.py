@@ -15,7 +15,7 @@ import NeighborManager as neighbor
 
 
 addresses = ['10.0.0.1', '10.0.0.2', '10.0.0.3', '10.0.0.4']
-gwAddresses = ['10.0.0.10', '10.0.0.11']
+gwAddresses = ['10.0.1.1', '10.0.1.2', '10.0.1.3', '10.0.1.4']
 nm = neighbor.NeighborManager()
 
 nm.myAddress = str(sys.argv[1])
@@ -29,6 +29,7 @@ if reactor.running:
     
 factory = protocol.ServerFactory()
 factory.protocol = server.MessageServerProtocol
+factory.protocol.client = nm
 reactor.listenTCP(5555, factory)
 
 
