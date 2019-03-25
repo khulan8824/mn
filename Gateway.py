@@ -10,14 +10,15 @@ class Gateway:
     actualLatency = 0.0
     sender = ""
 
-    def __init__(self, address, latency, ts, sender=""):
+    def __init__(self, ts, address, latency, sender):
         self.address = address
         self.latency = latency
         self.actualLatency = latency
         self.ts = ts
         self.sender = sender
+
         
     
     def printInformation(self):
-        print(self.address,':',str(self.latency), ':', str(self.actualLatency),':', self.ts.strftime("%Y-%m-%d %H:%M:%S"),':', self.status)
+        print(self.address,':',str(self.latency), ':', str(self.actualLatency),':', self.ts.strftime("%Y-%m-%d %H:%M:%S"), ':', self.sender)
     

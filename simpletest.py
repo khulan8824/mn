@@ -5,6 +5,7 @@ from mininet.log import setLogLevel
 from mininet.node import OVSController
 from mininet.cli import CLI
 from mininet.node import OVSKernelSwitch, UserSwitch  
+import random
 
 class SingleSwitchTopo(Topo):
     "Single switch connected to n hostst"
@@ -18,6 +19,7 @@ class SingleSwitchTopo(Topo):
         switch = self.addSwitch('s1', cls=OVSKernelSwitch)
         switch1 = self.addSwitch('s2', cls=OVSKernelSwitch)
         switch2 = self.addSwitch('s3', cls=OVSKernelSwitch)
+	
         for h in range(15):
             host = self.addHost('h%s' % (h+1), ip=addresses1[h])
             self.addLink(host, switch1)
@@ -32,7 +34,7 @@ class SingleSwitchTopo(Topo):
         
         for g in range(4):
             gw = self.addHost('g%s' % (g+1), ip=gwAddresses[g])
-            self.addLink(gw, switch)
+            self.addLink(gw, switch, bw=10)
             
             
 
@@ -41,11 +43,17 @@ def simpleTest():
     net = Mininet(topo)
     net.start()
     print("Dumping host connection")
-    #
-    #for h in net.hosts:
-    #    if h.name.startswith('g'):
-    #        h.sendCmd("python -m SimpleHTTPServer 8080 &")
-            
+    popens = {}
+    for h in net.hosts:
+	if h.name.startswith('g'):
+	    h.cmdPrint('python -m SimpleHTTPServer 8080 &')
+    popens = {}
+    for h in net.hosts:
+        if h.name.startswith('h'):
+	    randDelay = random.randint(0,6)
+            h.sendCmd("tc qdisc add dev %s-eth0 root netem delay %dms"%(h.name, randDelay))
+	    
+	
     CLI(net)
 
 if __name__ == "__main__":

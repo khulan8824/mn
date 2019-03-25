@@ -16,16 +16,15 @@ class MessageServerProtocol(Protocol):
     client = None
     
     def dataReceived(self,data):
+	print('data', data)
         connected = self.transport.getPeer().host
-        #print('Client:', connected)
-        #print('data:', data)
         nlist = data.decode('utf-8').split('#')
         for gwInfo in nlist:
             ts, address, latency, sender  = gwInfo.split(',')
-            client.setGatewayTable(ts,address,latency,sender)
-            with open('log','a') as f:
-                f.write("{0},{1},{2},{3},{4}\n".format(ts,address,latency, sender, self.transport.getHost().host))
-        #self.transport.write("connected")
+            self.client.setGatewayTable(datetime.datetime.strptime(ts, "%Y-%m-%d %H:%M:%S"), str(address) ,latency,str(sender))
+    	self.client.calculateTrustScore(sender)
+            #with open('log%s_%s'%(self.client.myAddress,address),'a') as f:
+            #    f.write("{0},{1},{2},{3},{4}\n".format(ts,address,latency, sender, self.transport.getHost().host))
         self.transport.loseConnection()
     
     def connectionLost(self, reason):
