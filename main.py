@@ -14,7 +14,7 @@ import MessageServerProtocol as server
 import NeighborManager as neighbor
 
 
-addresses = ['10.0.0.1', '10.0.0.2', '10.0.0.3', '10.0.0.4', '10.0.0.5', '10.0.0.6', '10.0.0.7', '10.0.0.8']
+addresses = ['10.0.0.1', '10.0.0.2', '10.0.0.3', '10.0.0.4']
 gwAddresses = ['10.0.1.1', '10.0.1.2', '10.0.1.3', '10.0.1.4']
 nm = neighbor.NeighborManager()
 
@@ -23,7 +23,6 @@ nm.neighbors = addresses
 nm.gateways = gwAddresses
 nm.trshld = 10
 
-#print("starting...",nm.neighborAddress )
 
 if reactor.running:
     reactor.stop()
@@ -34,14 +33,7 @@ factory.protocol.client = nm
 reactor.listenTCP(5555, factory)
 
 
-#print("coming")
-
 reactor.callLater(5,nm.senseNeighbors)
-
-#client4.cManager.connectBest()
-#time.sleep(10)
 reactor.callLater(15, nm.send)
-#nm.send()
-#reactor.callInThread(nm.send)
 
 reactor.run()

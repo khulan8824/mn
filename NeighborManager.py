@@ -8,6 +8,8 @@ import os
 import sys
 from math import *
 
+
+
 from twisted.python import log
 from twisted.internet import reactor, protocol
 from twisted.internet.protocol import ServerFactory, ClientFactory, Protocol
@@ -23,35 +25,32 @@ class NeighborManager:
     gateways = []
     gatewayTable = {}
     logs = [] # Add
-    actualTable={}
     trustScore = {}
     myAddress = ""
     trshld = 1
     cnt = 0
     period = 60
+    topK=2
 
     ####################TRUST SCORE CALCULATION################
+    #########################Non transitive###################
     def calculateTrustScore(self, node):
-	print("trust score:", node)
     	gateways = {x for x in self.logs if x.sender==node and (datetime.datetime.now() - x.ts).seconds < self.period} 
 	rest = {v for v in self.logs if v.sender!= node and (datetime.datetime.now() - v.ts).seconds < (self.period*2) and v.address in [x.address for x in gateways]}
+	total = 0.0
+	cnt = 1
+	for g in gateways:
+	    temp = [float(r.latency) for r in rest if r.address == g.address]
+	    if(len(temp)>0):
+		total += sum(temp)/len(temp)
+		cnt += 1
 	
-	for r in rest:
-	    value = abs((x for x in gateways if x.address == r.address)[0].latency - r.latency)
-	    if r.sender in trustScore:
-		trustScore[r.sender] = 1/3*trustScore[r.sender]+2/3*value
-	    else:
-		trustScore[r.sender] = value
-	#    r = {x for x in rest if entry.address == x.address}
-	#    print(r) 
-	#    gw = gateways.query('gateway == "'+row['gateway']+'"')
-        #    value = abs(gw.latency - row['latency'])
-
-        #    if row['sender'] in trust_score:
-        #    	trust_score[row['sender']] = 2/3*value + 1/3*trust_score[row['sender']]
-        #    else:
-        #    	trust_score[row['sender']] = value
-    
+	total = round(total/cnt,5)
+	if node in self.trustScore.keys():
+	    total = 0.33*self.trustScore[node] + 0.66*total
+	    self.trustScore[node] = total
+	else:
+	    self.trustScore[node] = 1.0*total
     
     
     ########HELPER FUNCTIONS#######
@@ -73,20 +72,28 @@ class NeighborManager:
         else:
 		
             with open('log','a') as f:
-                f.write("{0},{1},{2},{3},{4}\n".format(datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),str(address),str(lat), str(self.myAddress), str(self.myAddress)))
+                f.write("{0},{1},{2},{3},{4}\n".format(datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),str(address.encode('ascii', 'ignore')),str(lat.encode('ascii', 'ignore')), str(self.myAddress), str(self.myAddress)))
             return float(lat)
         
     def setGatewayTable(self, ts, address,latency,sender):
+	
 	#setGatewayTable(datetime.datetime.strptime(ts, "%Y-%m-%d %H:%M:%S"), str(address) ,latency,str(sender))
         gateway = gw.Gateway(ts, address, latency, sender)
         if sender != self.myAddress:
             gateway.actualLatency  = self.pingGateway(address)
-        self.gatewayTable[address] = gateway	
+	if sender in dict(sorted(self.trustScore.items(),key=lambda kv: kv[1])[:self.topK]):
+            self.gatewayTable[address] = gateway	
         self.logs.append(gateway)
+
+    def printGatewayTable(self):
+        print("==========GW TABLE=====")
+	for gw in self.gatewayTable:
+	    print(self.gatewayTable[gw].gateway,self.gatewayTable[gw].latency,self.gatewayTable[gw].actualLatency,self.gatewayTable[gw].sender)
             
     def sense(self):
         gws = self.select2Random()
         txt = ""
+	print('sensing')
         for gw in gws:
             lat = self.pingGateway(gw)
             t = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")+','+str(gw)+","+str(lat)+","+self.myAddress
@@ -95,7 +102,15 @@ class NeighborManager:
                 txt += t
             else:
                 txt = txt+"#"+t
-        for n in self.closeNeighbors:
+	trust_score =sorted(self.trustScore.items(),key=lambda kv: kv[1])
+	#print("Ordered score", trust_score)
+	trust_score =dict(sorted(self.trustScore.items(),key=lambda kv: kv[1])[:self.topK])
+	print("Trusted clients:", trust_score.keys())
+	addr = trust_score.keys()
+
+	if len(trust_score)<2:
+	    addr = self.closeNeighbors
+        for n in addr:
             if n == self.myAddress:
                 continue
             f = protocol.ClientFactory()
@@ -105,13 +120,16 @@ class NeighborManager:
             reactor.connectTCP(n, 5555, f)
             if not reactor.running:
                 reactor.run()
+	self.printCosineSimilarity()
+	self.printGatewayTable()
         
     def send(self):
         self.cnt+=1
         if self.cnt <20:            
             reactor.callLater(self.period, self.send)
+	    #threading.Timer(self.period, self.send).start()
             self.sense()
-	    print("Trust:",self.trustScore)
+	    #print("Trust:",self.trustScore)
         else:
             print("END")
             #sys.exit(0)
@@ -121,14 +139,12 @@ class NeighborManager:
 	return round(sqrt(sum([a*a for a in x])),3)
 
     def cosine_similarity(self, x,y):
-	print(x)
-	print(y)
 	numerator = sum(a*b for a,b in zip(x,y))
 	denominator = self.square_rooted(x)*self.square_rooted(y)
 	return round(numerator/float(denominator),3)
 
     def getRecentGateways(self):
-	return [x for x in self.gatewayTable if (datetime.datetime.now() - self.gatewayTable[x].ts).seconds <= (130)]
+	return [x for x in self.gatewayTable if (datetime.datetime.now() - self.gatewayTable[x].ts).seconds <= (self.period*2)]
 
 
     def printCosineSimilarity(self):
@@ -143,6 +159,8 @@ class NeighborManager:
 	    m1.append(float(self.gatewayTable[gw].latency))
 	    m2.append(float(self.gatewayTable[gw].actualLatency))
 	sim = float(self.cosine_similarity(m1,m2))
+	with open('sim_'+self.myAddress,'a') as f:
+	    f.write("{0},{1}\n".format(datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),str(sim)))
         print('Total recent measurement sim:',':',sim)
 
 #######################SENSING#######################    
