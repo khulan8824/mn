@@ -81,14 +81,15 @@ class NeighborManager:
         gateway = gw.Gateway(ts, address, latency, sender)
         if sender != self.myAddress:
             gateway.actualLatency  = self.pingGateway(address)
-	if sender in dict(sorted(self.trustScore.items(),key=lambda kv: kv[1])[:self.topK]):
+
+	if sender in dict(sorted(self.trustScore.items(),key=lambda kv: kv[1])[:self.topK]) or len(self.trustScore)>=self.topK:
             self.gatewayTable[address] = gateway	
         self.logs.append(gateway)
 
     def printGatewayTable(self):
         print("==========GW TABLE=====")
 	for gw in self.gatewayTable:
-	    print(self.gatewayTable[gw].gateway,self.gatewayTable[gw].latency,self.gatewayTable[gw].actualLatency,self.gatewayTable[gw].sender)
+	    print(self.gatewayTable[gw].address,self.gatewayTable[gw].latency,self.gatewayTable[gw].actualLatency,self.gatewayTable[gw].sender)
             
     def sense(self):
         gws = self.select2Random()
@@ -120,8 +121,8 @@ class NeighborManager:
             reactor.connectTCP(n, 5555, f)
             if not reactor.running:
                 reactor.run()
-	self.printCosineSimilarity()
 	self.printGatewayTable()
+	self.printCosineSimilarity()
         
     def send(self):
         self.cnt+=1
