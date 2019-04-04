@@ -53,10 +53,10 @@ def simpleTest():
     net.start()
     print("Dumping host connection")
     popens = {}
-    #for h in net.hosts:
-	#if h.name.startswith('g'):
-	    #h.cmdPrint('python -m SimpleHTTPServer 8080 &')
-    CLI(net)
+    for h in net.hosts:
+	if h.name.startswith('g'):
+	    h.cmdPrint('python -m SimpleHTTPServer 8080 &')
+    #CLI(net)
     for h in net.hosts:
         if h.name.startswith('h'):
 	    randDelay = random.randint(0,15)
