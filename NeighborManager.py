@@ -30,7 +30,7 @@ class NeighborManager:
     trshld = 1
     cnt = 0
     period = 60
-    topK=2
+    topK=7
 
     ####################TRUST SCORE CALCULATION################
     #########################Non transitive###################
@@ -90,6 +90,8 @@ class NeighborManager:
         print("==========GW TABLE=====")
 	for gw in self.gatewayTable:
 	    print(self.gatewayTable[gw].address,self.gatewayTable[gw].latency,self.gatewayTable[gw].actualLatency,self.gatewayTable[gw].sender)
+	    with open('gw_table_'+self.myAddress,'a') as f:
+	        f.write("{0},{1},{2},{3},{4}\n".format(datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),str(self.gatewayTable[gw].address), str(self.gatewayTable[gw].latency), str(self.gatewayTable[gw].actualLatency), str(self.gatewayTable[gw].sender)))
             
     def sense(self):
         gws = self.select2Random()
@@ -106,7 +108,7 @@ class NeighborManager:
 	trust_score =sorted(self.trustScore.items(),key=lambda kv: kv[1])
 	#print("Ordered score", trust_score)
 	trust_score =dict(sorted(self.trustScore.items(),key=lambda kv: kv[1])[:self.topK])
-	print("Trusted clients:", trust_score.keys())
+	#print("Trusted clients:", trust_score.keys())
 	addr = trust_score.keys()
 
 	if len(trust_score)<2:
@@ -126,7 +128,7 @@ class NeighborManager:
         
     def send(self):
         self.cnt+=1
-        if self.cnt <20:            
+        if self.cnt <400:            
             reactor.callLater(self.period, self.send)
 	    #threading.Timer(self.period, self.send).start()
             self.sense()
