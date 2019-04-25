@@ -143,7 +143,7 @@ class NeighborManager:
         
     def send(self):
         self.cnt+=1	
-        self.topK = len(self.gateways)+1
+        self.topK = len(self.gateways)/2+1
         if self.cnt <400:            
             reactor.callLater(self.period, self.send)
             self.sense()
