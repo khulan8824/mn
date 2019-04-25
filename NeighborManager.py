@@ -48,10 +48,9 @@ class NeighborManager:
             if len(rest)>0:
                 mean = total / len(rest)
             value += abs(mean - float(g.latency))
-        
-        value = value / len(l)
-                
-        
+        if len(l)>0:
+	    value = value / len(l)
+                        
         if node in self.trustScore.keys():
             self.trustScore[node] = 0.33*self.trustScore[node] + 0.66*value
         else:
@@ -109,14 +108,14 @@ class NeighborManager:
             self.setGatewayTable(datetime.datetime.now(), gw, float(lat), self.myAddress)
             
             ######ADDING FAULTY FEATURES#######
-            #if self.myAddress in ['10.0.0.3', '10.0.0.13', '10.0.0.23', '10.0.0.33', '10.0.0.43', '10.0.0.53', '10.0.0.63',
-            #                     '10.0.0.73', '10.0.0.83','10.0.0.5', '10.0.0.15', '10.0.0.25', '10.0.0.35', '10.0.0.45', 
+            if self.myAddress in ['10.0.0.3', '10.0.0.13', '10.0.0.23', '10.0.0.33', '10.0.0.43', '10.0.0.53', '10.0.0.63',
+                                 '10.0.0.73', '10.0.0.83']:#,'10.0.0.5', '10.0.0.15', '10.0.0.25', '10.0.0.35', '10.0.0.45', 
             #                      '10.0.0.55', '10.0.0.65','10.0.0.75', '10.0.0.85','10.0.0.7', '10.0.0.17', '10.0.0.27', 
             #                      '10.0.0.37', '10.0.0.47','10.0.0.57', '10.0.0.67','10.0.0.77', '10.0.0.87']:#,'10.0.0.9', 
                                   #'10.0.0.19', '10.0.0.29','10.0.0.39', '10.0.0.49','10.0.0.59', '10.0.0.69','10.0.0.79',
                                   #'10.0.0.89']:
              #   print('prev lat:',lat)
-             #   lat = float(lat)*10
+                lat = float(lat)*10
              #   print('edited lat:',lat)
             t = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")+','+str(gw)+","+str(lat)+","+self.myAddress
             if txt =="":
@@ -143,7 +142,8 @@ class NeighborManager:
         self.printCosineSimilarity()
         
     def send(self):
-        self.cnt+=1
+        self.cnt+=1	
+        self.topK = len(self.gateways)+1
         if self.cnt <400:            
             reactor.callLater(self.period, self.send)
             self.sense()
