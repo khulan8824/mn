@@ -16,7 +16,7 @@ for h in net.switches:
 
     elif h.name == 's11':
         for n in range(10): 
-            randDelay = random.randint(1,3)
+            randDelay = random.randint(5,10)
             h.cmdPrint("tc qdisc add dev s11-eth%d root netem delay %dms"%(n+1, randDelay))
 
     elif h.name == 's3':
@@ -58,7 +58,7 @@ for h in net.switches:
 
     elif h.name == 's10':
         for n in range(10):
-            randDelay = random.randint(5,10)
+            randDelay = random.randint(2,6)
             h.cmdPrint("tc qdisc add dev s10-eth%d root netem delay %dms"%(n+1, randDelay))
 
     elif h.name == 's1':
