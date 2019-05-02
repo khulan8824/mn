@@ -32,7 +32,7 @@ class NeighborManager:
     trshld = 1
     cnt = 0
     period = 60
-    topK=7
+    topK=10
 
     ####################TRUST SCORE CALCULATION################
     #########################Non transitive###################
@@ -80,21 +80,34 @@ class NeighborManager:
         if int(code) != 200:
             return ""
         else:
-            
             with open('log','a') as f:
                 f.write("{0},{1},{2},{3},{4}\n".format(datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),str(address.encode('ascii', 'ignore')),str(lat.encode('ascii', 'ignore')), str(self.myAddress), str(self.myAddress)))
             return float(lat)
         
     def setGatewayTable(self, ts, address,latency,sender):
-	
-	#setGatewayTable(datetime.datetime.strptime(ts, "%Y-%m-%d %H:%M:%S"), str(address) ,latency,str(sender))
+        
         gateway = gw.Gateway(ts, address, latency, sender)
         if sender != self.myAddress:
             gateway.actualLatency  = self.pingGateway(address)
         print("Trused clients:",sorted(self.trustScore.items(),key=lambda kv: kv[1])[:self.topK])
         if sender in dict(sorted(self.trustScore.items(),key=lambda kv: kv[1])[:self.topK]) or len(self.trustScore)<=self.topK:
-            self.gatewayTable[address] = gateway	
-        self.logs.append(gateway)
+            previous_gws= self.get2RecentGateways(gateway)
+            #print('Previous', previous_gws)
+            cnt = 1
+            value = 0
+            for gway in previous_gws:
+                value += (gway.latency*cnt)/(sum(range(len(previous_gws)+2)))
+                cnt+=1
+            ##print(len(previous_gws))
+            if len(previous_gws) == 0:
+                self.gatewayTable[address] = gateway
+            else:
+                gateway.latency =value + (cnt*gateway)/(sum(1,range(len(previous_gws)+1)))
+                self.gatewayTable[address] = gateway
+                print('Coming')
+                
+            #print(gateway.latency, gateway.sender)
+            self.logs.append(gateway)
 
     def printGatewayTable(self):
         #print("==========GW TABLE=====")
@@ -109,21 +122,22 @@ class NeighborManager:
         txt = ""
         print('sensing')
         for gw in gws:
+            print(gw)
             lat = self.pingGateway(gw)
             self.setGatewayTable(datetime.datetime.now(), gw, float(lat), self.myAddress)
             
             ######ADDING FAULTY FEATURES#######
-            if self.myAddress in ['10.0.0.3', '10.0.0.13', '10.0.0.23', '10.0.0.33', '10.0.0.43', '10.0.0.53', '10.0.0.63',
-                                 '10.0.0.73', '10.0.0.83'
-                                  ,'10.0.0.5', '10.0.0.15', '10.0.0.25', '10.0.0.35', '10.0.0.45', 
-                                  '10.0.0.55', '10.0.0.65','10.0.0.75', '10.0.0.85'
+            #if self.myAddress in ['10.0.0.3', '10.0.0.13', '10.0.0.23', '10.0.0.33', '10.0.0.43', '10.0.0.53', '10.0.0.63',
+            #                     '10.0.0.73', '10.0.0.83'
+            #                      ,'10.0.0.5', '10.0.0.15', '10.0.0.25', '10.0.0.35', '10.0.0.45', 
+            #                      '10.0.0.55', '10.0.0.65','10.0.0.75', '10.0.0.85'
                                   #,'10.0.0.7', '10.0.0.17', '10.0.0.27','10.0.0.37', '10.0.0.47','10.0.0.57', 
                                   #'10.0.0.67','10.0.0.77', '10.0.0.87'
-                                 ]:#,'10.0.0.9', 
+            #                     ]:#,'10.0.0.9', 
                                   #'10.0.0.19', '10.0.0.29','10.0.0.39', '10.0.0.49','10.0.0.59', '10.0.0.69','10.0.0.79',
                                   #'10.0.0.89']:
              #   print('prev lat:',lat)
-                lat = float(lat)*10
+             #   lat = float(lat)*10
              #   print('edited lat:',lat)
             t = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")+','+str(gw)+","+str(lat)+","+self.myAddress
             if txt =="":
@@ -152,6 +166,7 @@ class NeighborManager:
     def send(self):
         self.cnt+=1	
         self.topK = len(self.gateways)/2+1
+        #self.gatewayTable = {}
         if self.cnt <400:            
             reactor.callLater(self.period, self.send)
             self.sense()
@@ -170,8 +185,8 @@ class NeighborManager:
     def getRecentGateways(self):
         return [x for x in self.gatewayTable if (datetime.datetime.now() - self.gatewayTable[x].ts).seconds <= (self.period+10)]
     
-    def get2RecentGateways(self):
-        return [x for x in self.gatewayTable if (datetime.datetime.now() - self.gatewayTable[x].ts).seconds <= (self.period*2)]
+    def get2RecentGateways(self, gateway):
+        return [x for x in self.logs if (datetime.datetime.now() - x.ts).seconds <= (self.period*2) and x.address == gateway]
 
     def printCosineSimilarity(self):
         total = 0
