@@ -17,7 +17,6 @@ from twisted.internet.protocol import ServerFactory, ClientFactory, Protocol
 import MessageServerProtocol as server
 import MessageClientProtocol as client
 import Gateway as gw
-import statistics 
 
 
 class NeighborManager:
@@ -45,7 +44,7 @@ class NeighborManager:
             rest = {v for v in self.logs if v.sender!= node and (datetime.datetime.now() - v.ts).seconds < (self.period*2) and v.address == g.address}
             total = 0.0
             for r in rest:
-                print(r.address,r.latency)
+                #print(r.address,r.latency)
                 total += float(r.latency)
                 samples.append(r.latency)
             mean =0.0
@@ -61,7 +60,7 @@ class NeighborManager:
             self.trustScore[node] = 0.33*self.trustScore[node] + 0.66*value
         else:
             self.trustScore[node] = 1.0*value
-        print('Calculated score:', self.trustScore[node])
+        #print('Calculated score:', self.trustScore[node])
 
     ########HELPER FUNCTIONS#######
     def select2Random(self):
@@ -89,7 +88,7 @@ class NeighborManager:
         gateway = gw.Gateway(ts, address, latency, sender)
         if sender != self.myAddress:
             gateway.actualLatency  = self.pingGateway(address)
-        print("Trused clients:",sorted(self.trustScore.items(),key=lambda kv: kv[1])[:self.topK])
+        #print("Trused clients:",sorted(self.trustScore.items(),key=lambda kv: kv[1])[:self.topK])
         if sender in dict(sorted(self.trustScore.items(),key=lambda kv: kv[1])[:self.topK]) or len(self.trustScore)<=self.topK:
             previous_gws= self.get2RecentGateways(gateway)
             #print('Previous', previous_gws)
@@ -98,15 +97,11 @@ class NeighborManager:
             for gway in previous_gws:
                 value += (gway.latency*cnt)/(sum(range(len(previous_gws)+2)))
                 cnt+=1
-            ##print(len(previous_gws))
             if len(previous_gws) == 0:
                 self.gatewayTable[address] = gateway
             else:
-                gateway.latency =value + (cnt*gateway)/(sum(1,range(len(previous_gws)+1)))
+                gateway.latency =value + (cnt*gateway.latency)/(sum(range(1,len(previous_gws)+2)))
                 self.gatewayTable[address] = gateway
-                print('Coming')
-                
-            #print(gateway.latency, gateway.sender)
             self.logs.append(gateway)
 
     def printGatewayTable(self):
@@ -120,11 +115,9 @@ class NeighborManager:
     def sense(self):
         gws = self.select2Random()
         txt = ""
-        print('sensing')
-        for gw in gws:
-            print(gw)
-            lat = self.pingGateway(gw)
-            self.setGatewayTable(datetime.datetime.now(), gw, float(lat), self.myAddress)
+        for g in gws:
+            lat = self.pingGateway(g)
+            self.setGatewayTable(datetime.datetime.now(), g, float(lat), self.myAddress)
             
             ######ADDING FAULTY FEATURES#######
             #if self.myAddress in ['10.0.0.3', '10.0.0.13', '10.0.0.23', '10.0.0.33', '10.0.0.43', '10.0.0.53', '10.0.0.63',
@@ -139,7 +132,7 @@ class NeighborManager:
              #   print('prev lat:',lat)
              #   lat = float(lat)*10
              #   print('edited lat:',lat)
-            t = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")+','+str(gw)+","+str(lat)+","+self.myAddress
+            t = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")+','+str(g)+","+str(lat)+","+self.myAddress
             if txt =="":
                 txt += t
             else:
@@ -183,10 +176,13 @@ class NeighborManager:
         return round(numerator/float(denominator),3)
 
     def getRecentGateways(self):
-        return [x for x in self.gatewayTable if (datetime.datetime.now() - self.gatewayTable[x].ts).seconds <= (self.period+10)]
+        l = [x for x in self.gatewayTable if (datetime.datetime.now() - self.gatewayTable[x].ts).seconds <= (self.period+10)]
+        return l
     
     def get2RecentGateways(self, gateway):
-        return [x for x in self.logs if (datetime.datetime.now() - x.ts).seconds <= (self.period*2) and x.address == gateway]
+        l = [x for x in self.logs if (datetime.datetime.now() - x.ts).seconds <= (self.period*2) and x.address == gateway.address]
+
+        return l
 
     def printCosineSimilarity(self):
         total = 0
@@ -221,7 +217,7 @@ class NeighborManager:
             if n == self.myAddress:
                 continue
             rtt = self.ping(n)
-            print(n, rtt)
+            #print(n, rtt)
             if rtt<self.trshld:
                 self.closeNeighbors.append(n)
         print("Close neighbors", self.closeNeighbors)
