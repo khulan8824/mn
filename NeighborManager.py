@@ -37,6 +37,7 @@ class NeighborManager:
     #########################Non transitive###################
     ####Mean of the same gateway latency that others sent vs my value
     def calculateTrustScore(self, node, l):
+        
         gateways = {x for x in self.logs if x.sender==node and (datetime.datetime.now() - x.ts).seconds < self.period} 
         value = 0.0
         samples = []
@@ -44,7 +45,6 @@ class NeighborManager:
             rest = {v for v in self.logs if v.sender!= node and (datetime.datetime.now() - v.ts).seconds < (self.period*2) and v.address == g.address}
             total = 0.0
             for r in rest:
-                #print(r.address,r.latency)
                 total += float(r.latency)
                 samples.append(r.latency)
             mean =0.0
@@ -54,14 +54,20 @@ class NeighborManager:
         if len(l)>0:
             value = value / len(l)
         
-        #print('Average trust score:',statistics.mean(self.trustScore))
-        
         if node in self.trustScore.keys():
             self.trustScore[node] = 0.33*self.trustScore[node] + 0.66*value
         else:
             self.trustScore[node] = 1.0*value
-        #print('Calculated score:', self.trustScore[node])
-
+        
+    def checkNodeActive(self):        
+        for n in self.closeNeighbors:
+            values = [v for v in self.logs if v.sender == n and (datetime.datetime.now() - v.ts).seconds < (self.period*2+10)]
+            if len(values)==0:
+                if n in self.trustScore:
+                    print('Not received from', n)
+                    self.trustScore.update({n:2})                
+                
+        
     ########HELPER FUNCTIONS#######
     def select2Random(self):
         status = True
@@ -84,14 +90,16 @@ class NeighborManager:
             return float(lat)
         
     def setGatewayTable(self, ts, address,latency,sender):
-        
+        if sender not in self.closeNeighbors:
+            self.checkNeighbor(sender)
+        delete = [key for key in self.gatewayTable if (datetime.datetime.now() - self.gatewayTable[key].ts).seconds > (self.period+10)]
+        #print('deleting:', delete)
+        for key in delete: del self.gatewayTable[key] 
         gateway = gw.Gateway(ts, address, latency, sender)
         if sender != self.myAddress:
             gateway.actualLatency  = self.pingGateway(address)
-        #print("Trused clients:",sorted(self.trustScore.items(),key=lambda kv: kv[1])[:self.topK])
-        if sender in dict(sorted(self.trustScore.items(),key=lambda kv: kv[1])[:self.topK]) or len(self.trustScore)<=self.topK:
+        if sender in dict(sorted(self.trustScore.items(),key=lambda kv: kv[1])[:self.topK]) or len(self.trustScore)<=self.topK or sender == self.myAddress:
             previous_gws= self.get2RecentGateways(gateway)
-            #print('Previous', previous_gws)
             cnt = 1
             value = 0
             for gway in previous_gws:
@@ -102,13 +110,10 @@ class NeighborManager:
             else:
                 gateway.latency =value + (cnt*gateway.latency)/(sum(range(1,len(previous_gws)+2)))
                 self.gatewayTable[address] = gateway
-            self.logs.append(gateway)
+        self.logs.append(gateway)
 
     def printGatewayTable(self):
-        #print("==========GW TABLE=====")
         for gw in self.gatewayTable:
-            #print(self.gatewayTable[gw].address,self.gatewayTable[gw].latency,
-            #      self.gatewayTable[gw].actualLatency,self.gatewayTable[gw].sender)
             with open('gw_table_'+self.myAddress,'a') as f:
                 f.write("{0},{1},{2},{3},{4}\n".format(datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),str(self.gatewayTable[gw].address), str(self.gatewayTable[gw].latency), str(self.gatewayTable[gw].actualLatency), str(self.gatewayTable[gw].sender)))
             
@@ -117,6 +122,7 @@ class NeighborManager:
         txt = ""
         for g in gws:
             lat = self.pingGateway(g)
+            print(g, lat)
             self.setGatewayTable(datetime.datetime.now(), g, float(lat), self.myAddress)
             
             ######ADDING FAULTY FEATURES#######
@@ -137,9 +143,12 @@ class NeighborManager:
                 txt += t
             else:
                 txt = txt+"#"+t
+                
         trust_score =sorted(self.trustScore.items(),key=lambda kv: kv[1])
         trust_score =dict(sorted(self.trustScore.items(),key=lambda kv: kv[1])[:self.topK])
         addr = trust_score.keys()
+        
+        self.checkNodeActive()
         
         if len(trust_score)<2:
             addr = self.closeNeighbors
@@ -196,9 +205,11 @@ class NeighborManager:
             m1.append(float(self.gatewayTable[gw].latency))
             m2.append(float(self.gatewayTable[gw].actualLatency))
         sim = float(self.cosine_similarity(m1,m2))
+        
+        trust_score =sorted(self.trustScore.items(),key=lambda kv: kv[1])[:self.topK]
         with open('sim_'+self.myAddress,'a') as f:
-            f.write("{0},{1}\n".format(datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),str(sim)))
-        print('Total recent measurement sim:',':',sim)
+            f.write("{0},{1},{2},{3}\n".format(datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),str(sim), str(len(recent)), len(trust_score)))
+        print('Total recent measurement sim:',':',sim,len(recent),len(trust_score))
 
 #######################SENSING#######################    
     def ping(self, address):
@@ -211,7 +222,13 @@ class NeighborManager:
         else:
             return float(stdout.split('/')[-3])
         
-    
+    def checkNeighbor(self, node):        
+        print('Checking neighbor', node)
+        rtt = self.ping(node)
+        if rtt < self.trshld:
+            self.closeNeighbors.append(node)
+            print('appending',node)
+            
     def senseNeighbors(self):
         for n in self.neighbors:
             if n == self.myAddress:
