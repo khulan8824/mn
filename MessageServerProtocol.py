@@ -19,6 +19,7 @@ class MessageServerProtocol(Protocol):
     def dataReceived(self,data):
         connected = self.transport.getPeer().host
         print("connected", connected)
+        self.client.receiveCount += 1
         nlist = data.decode('utf-8').split('#')
         l = []
         for gwInfo in nlist:

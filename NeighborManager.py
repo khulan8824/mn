@@ -32,6 +32,9 @@ class NeighborManager:
     cnt = 0
     period = 60
     topK=10
+    senseCount = 0
+    sendCount = 0
+    receiveCount = 0
 
     ####################TRUST SCORE CALCULATION################
     #########################Non transitive###################
@@ -61,7 +64,7 @@ class NeighborManager:
         
     def checkNodeActive(self):        
         for n in self.closeNeighbors:
-            values = [v for v in self.logs if v.sender == n and (datetime.datetime.now() - v.ts).seconds < (self.period*2+10)]
+            values = [v for v in self.logs if v.sender == n and (datetime.datetime.now() - v.ts).seconds < (self.period*3+10)]
             if len(values)==0:
                 if n in self.trustScore:
                     print('Not received from', n)
@@ -122,6 +125,7 @@ class NeighborManager:
         txt = ""
         for g in gws:
             lat = self.pingGateway(g)
+            self.senseCount += 1
             print(g, lat)
             self.setGatewayTable(datetime.datetime.now(), g, float(lat), self.myAddress)
             
@@ -153,6 +157,7 @@ class NeighborManager:
         if len(trust_score)<2:
             addr = self.closeNeighbors
         for n in addr:
+            self.sendCount += 1
             if n == self.myAddress:
                 continue
             f = protocol.ClientFactory()
@@ -162,8 +167,9 @@ class NeighborManager:
             reactor.connectTCP(n, 5555, f)
             if not reactor.running:
                 reactor.run()
-        self.printGatewayTable()
-        self.printCosineSimilarity()
+                
+        #self.printGatewayTable()
+        #self.printCosineSimilarity()
         
     def send(self):
         self.cnt+=1	
@@ -172,6 +178,12 @@ class NeighborManager:
         if self.cnt <400:            
             reactor.callLater(self.period, self.send)
             self.sense()
+            with open('count_'+self.myAddress,'a') as f:
+                f.write("{0},{1},{2},{3}\n".format(datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),str(self.senseCount), str(self.sendCount), str(self.receiveCount)))
+                self.printCosineSimilarity()
+                self.senseCount = 0
+                self.sendCount = 0
+                self.receiveCount = 0
         else:
             print("END")
 
