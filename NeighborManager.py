@@ -157,7 +157,8 @@ class NeighborManager:
         if len(trust_score)<2:
             addr = self.closeNeighbors
         for n in addr:
-            self.sendCount += 1
+            if n in self.closeNeighbors:
+                self.sendCount += 1
             if n == self.myAddress:
                 continue
             f = protocol.ClientFactory()
@@ -236,6 +237,8 @@ class NeighborManager:
         
     def checkNeighbor(self, node):        
         print('Checking neighbor', node)
+        if node == self.myAddress:
+            return
         rtt = self.ping(node)
         if rtt < self.trshld:
             self.closeNeighbors.append(node)
