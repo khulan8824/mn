@@ -179,12 +179,8 @@ class NeighborManager:
         if self.cnt <400:            
             reactor.callLater(self.period, self.send)
             self.sense()
-            with open('count_'+self.myAddress,'a') as f:
-                f.write("{0},{1},{2},{3}\n".format(datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),str(self.senseCount), str(self.sendCount), str(self.receiveCount)))
-                self.printCosineSimilarity()
-                self.senseCount = 0
-                self.sendCount = 0
-                self.receiveCount = 0
+            self.printGatewayTable()
+            #self.printCount()
         else:
             print("END")
 
@@ -206,6 +202,14 @@ class NeighborManager:
 
         return l
 
+    
+    def printCount(self):
+        with open('count_'+self.myAddress,'a') as f:
+                f.write("{0},{1},{2},{3}\n".format(datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),str(self.senseCount), str(self.sendCount), str(self.receiveCount)))                
+                self.senseCount = 0
+                self.sendCount = 0
+                self.receiveCount = 0
+                
     def printCosineSimilarity(self):
         total = 0
         count1 = 0
@@ -221,7 +225,7 @@ class NeighborManager:
         
         trust_score =sorted(self.trustScore.items(),key=lambda kv: kv[1])[:self.topK]
         with open('sim_'+self.myAddress,'a') as f:
-            f.write("{0},{1},{2},{3}\n".format(datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),str(sim), str(len(recent)), len(trust_score)))
+            f.write("{0},{1},{2},{3}\n".format(datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),str(sim), str(len(recent)), len(self.closeNeighbors)))
         print('Total recent measurement sim:',':',sim,len(recent),len(trust_score))
 
 #######################SENSING#######################    

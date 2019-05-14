@@ -31,11 +31,17 @@ class GenericTree(Topo):
                 child = self.addTree( depth - 1, fanout )
                 self.addLink( node, child )
         else:
-            if self.hostNum>90:
-                cpuLimit = [.8, .3, .9]
-                l =  random.choice(cpuLimit)
-                print(self.hostNum, l)
-                node = self.addHost( 'h%s' % self.hostNum, cpu =l)
+            if self.hostNum == 91:
+                node = self.addHost( 'h%s' % self.hostNum, cpu = .1)
+            elif self.hostNum == 92:
+                node = self.addHost( 'h%s' % self.hostNum, cpu = .5)
+            elif self.hostNum == 93:
+                node = self.addHost( 'h%s' % self.hostNum, cpu = .7)
+            elif self.hostNum == 94:
+                node = self.addHost( 'h%s' % self.hostNum, cpu = .9)
+            elif self.hostNum > 94:
+                node = self.addHost( 'h%s' % self.hostNum, cpu = 1)
+                
             else:
                 node = self.addHost( 'h%s' % self.hostNum )
             self.hostNum += 1
@@ -55,7 +61,12 @@ for h in net.switches:
     elif h.name == 's11':
         for n in range(10): 
             randDelay = random.randint(5,10)
-            h.cmdPrint("tc qdisc add dev s11-eth%d root netem delay %dms"%(n+1, randDelay))
+            if n == 0 or n == 1:
+                h.cmdPrint("tc qdisc add dev s11-eth"+str(n+1)+" root netem delay "+str(randDelay)+"ms 5ms 30% distribution normal")
+            elif n ==2 or n == 3:
+                h.cmdPrint("tc qdisc add dev s11-eth%d root netem delay 20ms 5ms distribution normal"%(n+1))
+            else:
+                h.cmdPrint("tc qdisc add dev s11-eth%d root netem delay %dms"%(n+1, randDelay))
             name = 'h9%d'%(n+1)
             if n == 9:
                 name = 'h100'
@@ -105,8 +116,8 @@ for h in net.switches:
             h.cmdPrint("tc qdisc add dev s10-eth%d root netem delay %dms"%(n+1, randDelay))
 
     elif h.name == 's1':
-        h.cmdPrint("tc qdisc add dev s2-eth11 root netem delay 5ms")
-        h.cmdPrint("tc qdisc add dev s3-eth11 root netem delay 5ms")
+        h.cmdPrint("tc qdisc add dev s2-eth11 root netem delay 1ms")
+        h.cmdPrint("tc qdisc add dev s3-eth11 root netem delay 1ms")
         h.cmdPrint("tc qdisc add dev s4-eth11 root netem delay 5ms")
         h.cmdPrint("tc qdisc add dev s5-eth11 root netem delay 5ms")
         h.cmdPrint("tc qdisc add dev s6-eth11 root netem delay 5ms")
