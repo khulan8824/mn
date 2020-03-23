@@ -20,6 +20,7 @@ class MultiSwitchTopo(Topo):
         gwAddresses = ['10.0.1.1', '10.0.1.2', '10.0.1.3', '10.0.1.4', '10.0.1.5', '10.0.1.6', '10.0.1.7', '10.0.1.8', '10.0.1.9', '10.0.1.10']
         
         switch = self.addSwitch('s13', cls=OVSKernelSwitch)
+
         switch1 = self.addSwitch('s1', cls=OVSKernelSwitch)
         switch2 = self.addSwitch('s2', cls=OVSKernelSwitch)
         switch3 = self.addSwitch('s3', cls=OVSKernelSwitch)
@@ -75,7 +76,7 @@ class MultiSwitchTopo(Topo):
 
         for g in range(len(gwAddresses)):
             gw = self.addHost('g%s' % (g+1), ip=gwAddresses[g])
-            self.addLink(gw, switch, bw=10)
+            self.addLink(gw, switch)
             
             
 
@@ -148,11 +149,11 @@ def simpleTest():
 #	    #h.cmdPrint("tc qdisc add dev %s-eth0 root netem delay 0ms %dms"%(h.name, randDelay))
 #	    h.cmdPrint('python -m SimpleHTTPServer 8080 &')
 
-    for h in net.hosts:
-	if h.name.startswith('h'):
-	    h.cmdPrint('python sense.py %s &'%h.IP())
+    #for h in net.hosts:
+#	if h.name.startswith('h') and h.name in ['h1', 'h2', 'h3','h4', 'h5', 'h6', 'h7','h8', 'h9', 'h10', 'h11', 'h12', 'h13', 'h14', 'h15', 'h16', 'h17', 'h18', 'h19', 'h20']:
+#	    h.cmdPrint('python main.py %s &'%h.IP())
 	
-    CLI(net)
+#    CLI(net)
 
 if __name__ == "__main__":
     setLogLevel('info')

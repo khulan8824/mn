@@ -18,10 +18,10 @@ class MessageServerProtocol(Protocol):
     
     def dataReceived(self,data):
         connected = self.transport.getPeer().host
-        print("connected", connected)
         self.client.receiveCount += 1
         nlist = data.decode('utf-8').split('#')
         l = []
+        #print("connected", connected)
         for gwInfo in nlist:
             ts, address, latency, sender  = gwInfo.split(',')
             temp = gt.Gateway(ts, address, latency, sender)

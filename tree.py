@@ -62,9 +62,9 @@ for h in net.switches:
         for n in range(10): 
             randDelay = random.randint(5,10)
             if n == 0 or n == 1:
-                h.cmdPrint("tc qdisc add dev s11-eth"+str(n+1)+" root netem delay "+str(randDelay)+"ms 5ms 30% distribution normal")
+                h.cmdPrint("tc qdisc add dev s11-eth"+str(n+1)+" root netem delay 10ms 10ms distribution normal")
             elif n ==2 or n == 3:
-                h.cmdPrint("tc qdisc add dev s11-eth%d root netem delay 20ms 5ms distribution normal"%(n+1))
+                h.cmdPrint("tc qdisc add dev s11-eth%d root netem delay 5ms 15ms distribution normal"%(n+1))
             else:
                 h.cmdPrint("tc qdisc add dev s11-eth%d root netem delay %dms"%(n+1, randDelay))
             name = 'h9%d'%(n+1)
@@ -116,8 +116,8 @@ for h in net.switches:
             h.cmdPrint("tc qdisc add dev s10-eth%d root netem delay %dms"%(n+1, randDelay))
 
     elif h.name == 's1':
-        h.cmdPrint("tc qdisc add dev s2-eth11 root netem delay 1ms")
-        h.cmdPrint("tc qdisc add dev s3-eth11 root netem delay 1ms")
+        h.cmdPrint("tc qdisc add dev s2-eth11 root netem delay 3ms")
+        h.cmdPrint("tc qdisc add dev s3-eth11 root netem delay 3ms")
         h.cmdPrint("tc qdisc add dev s4-eth11 root netem delay 5ms")
         h.cmdPrint("tc qdisc add dev s5-eth11 root netem delay 5ms")
         h.cmdPrint("tc qdisc add dev s6-eth11 root netem delay 5ms")
