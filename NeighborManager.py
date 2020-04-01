@@ -27,6 +27,7 @@ class NeighborManager:
     neighbors = []
     closeNeighbors = []
     gateways = []
+    originalGateways = []
     gatewayTable = {}
     logs = [] # Historical gw perf table values
     trustScore = {} #updated trust score of each collaborators
@@ -79,7 +80,8 @@ class NeighborManager:
             if len(values)==0:
                 if n in self.trustScore:
                     print('Not received from', n)
-                    self.trustScore.update({n:2})                
+                    self.trustScore.update({n:2})
+                    self.closeNeighbors.remove(n)
                 
         
     ########HELPER FUNCTIONS#######
@@ -113,11 +115,15 @@ class NeighborManager:
 #returning the download latency to the caller
     def pingGateway(self,address):
         status = True
-        cmd='''curl http://'''+address+''':8080/1Mb.dat -m 180 -w %{time_total},%{http_code} -o /dev/null -s'''
+        cmd='''curl http://'''+address+''':8080/1Mb.dat -m 300 -w %{time_total},%{http_code} -o /dev/null -s'''
         command = Popen(shlex.split(cmd),stdout=PIPE, stderr=PIPE)
         stdout, stderr = command.communicate()
         lat, code = stdout.decode("utf-8").split(',')
+        
+        #Checking if gateway is accessible
         if int(code) != 200:
+            print(address," not accessible")
+            self.gateways.remove(address)
             return ""
         else:
             with open('log','a') as f:
@@ -150,6 +156,10 @@ class NeighborManager:
         gateway.stdev = self.getRecentDeviation(10, gateway) #Finding out the std of the specific gateway
         self.updateThresholdValues()
         gateway = self.setCategory(gateway)
+        
+        #checking if the received gw is in the gateway list?
+        if address not in self.gateway_candidates:
+            self.gateway_candidates.append(address)
         self.logs.append(gateway)
         
     def setCategory(self, gateway):
@@ -174,8 +184,9 @@ class NeighborManager:
 
 #Sensing gateway nodes performances and sending to the close neighboers
     def sense(self):
-        if len(self.closeNeighbors) <1:
+        if len(self.closeNeighbors)<1:
             self.senseNeighbors()
+        self.senseGateways()
         gws = self.select2Random()
         txt = ""
         for g in gws:
@@ -232,12 +243,16 @@ class NeighborManager:
             self.cnt +=1
             gatewayTable = self.getRecentGateways(sensing_time)
             gatewayTable = self.removeDuplicates(gatewayTable)
-            #self.printGatewayTable(gatewayTable)
+            self.printGatewayTable(gatewayTable)
             gatewayTable.extend(self.fillMissingValue(gatewayTable, sensing_time))
             self.categorizeByCapacity(gatewayTable, sensing_time)
-            self.selectGateway(gatewayTable)
+            #self.selectGateway(gatewayTable)
+            neighbors = ""
+            for neighbor in self.closeNeighbors:
+                neighbors += ','+neighbor
+            print('Close neighbors', neighbors)
             #self.selectBestGateway(gatewayTable)
-            #self.selectRandomGateway(gatewayTable)
+            self.selectRandomGateway(gatewayTable)
             #self.selectAllBestGateway()
             #self.printCosineSimilarity()
             #self.printCount()
@@ -300,6 +315,8 @@ class NeighborManager:
         returnGWs = []        
         uniqueAddress = [x.address for x in uniqueGateways]
         missingGateways = [x for x in self.gateways if x not in uniqueAddress]
+        if len(uniqueGateways) == 0:
+            return []
         ts1 = [x.ts for x in uniqueGateways][0]
         print("Missing gws", missingGateways)
         #Find last 5 measurements from the logs
@@ -383,7 +400,9 @@ class NeighborManager:
         bestLat = 0
         perfGws = {}
         for gw in self.gateways:
-            perfGws[gw] = self.pingGateway(gw)
+            lat = self.pingGateway(gw)
+            if lat != "":
+                perfGws[gw] = lat
         
         for key,value in perfGws.items():            
             if bestGW == "" or bestLat> value:
@@ -449,6 +468,7 @@ class NeighborManager:
             print('appending',node)
             
     def senseNeighbors(self):
+        print("Sensing neighbors")
         for n in self.neighbors:
             if n == self.myAddress:
                 continue
@@ -457,7 +477,17 @@ class NeighborManager:
             if rtt<self.trshld:
                 self.closeNeighbors.append(n)
         print("Close neighbors", self.closeNeighbors)
-        
+
+    def senseGateways(self):
+        if len(self.gateways)>8:
+            return
+        print("Sensing gateways")
+        for n in self.originalGateways:
+            rtt = self.ping(n)
+            #print(n, rtt)
+            if rtt != '' and rtt>0 and n not in self.gateways:
+                self.gateways.append(n)
+                print('added gateway:', n)
         
 ##############DOWNLOAD USING SELECTED GATEWAY##################
     def download(self):
@@ -467,33 +497,33 @@ class NeighborManager:
         
     def downloadContent(self):
         ##########Downloading with power of 2 choices################
-        status = True
-        cmd='''curl http://'''+self.selected_gateway+''':8080/1Gb.dat -m 180 -w %{time_total},%{http_code} -o /dev/null -s'''
-        command = Popen(shlex.split(cmd),stdout=PIPE, stderr=PIPE)
-        stdout, stderr = command.communicate()
-        lat, code = stdout.decode("utf-8").split(',')
-        if int(code) != 200:
-            return
-        else:
-            with open('download_'+self.myAddress,'a') as f:
-                f.write("{0},{1}\n".format(datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),str(lat.encode('ascii', 'ignore'))))
-        ########DOWNLOADING WITH BEST GW###################
         #status = True
-        #cmd='''curl http://'''+self.selected_best_gateway+''':8080/1Gb.dat -m 180 -w %{time_total},%{http_code} -o /dev/null -s'''
+        #cmd='''curl http://'''+self.selected_gateway+''':8080/10Mb.dat -m 180 -w %{time_total},%{http_code} -o /dev/null -s'''
         #command = Popen(shlex.split(cmd),stdout=PIPE, stderr=PIPE)
         #stdout, stderr = command.communicate()
         #lat, code = stdout.decode("utf-8").split(',')
         #if int(code) != 200:
         #    return
         #else:
-        #    with open('download_best_'+self.myAddress,'a') as f:
+        #    with open('download_'+self.myAddress,'a') as f:
         #        f.write("{0},{1}\n".format(datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),str(lat.encode('ascii', 'ignore'))))
+        ########DOWNLOADING WITH RANDOM GW###################
+        status = True
+        cmd='''curl http://'''+self.selected_random_gateway+''':8080/10Mb.dat -m 180 -w %{time_total},%{http_code} -o /dev/null -s'''
+        command = Popen(shlex.split(cmd),stdout=PIPE, stderr=PIPE)
+        stdout, stderr = command.communicate()
+        lat, code = stdout.decode("utf-8").split(',')
+        if int(code) != 200:
+            return
+        else:
+            with open('download_random_'+self.myAddress,'a') as f:
+                f.write("{0},{1}\n".format(datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),str(lat.encode('ascii', 'ignore'))))
                 
         ########DOWNLOADING WITH ALL BEST GW###################
         #status = True
         #if self.selected_all_best_gateway == "":
         #    return
-        #cmd='''curl http://'''+self.selected_all_best_gateway+''':8080/1Gb.dat -m 180 -w %{time_total},%{http_code} -o /dev/null -s'''
+        #cmd='''curl http://'''+self.selected_all_best_gateway+''':8080/10Mb.dat -m 180 -w %{time_total},%{http_code} -o /dev/null -s'''
         #command = Popen(shlex.split(cmd),stdout=PIPE, stderr=PIPE)
         #stdout, stderr = command.communicate()
         #lat, code = stdout.decode("utf-8").split(',')
