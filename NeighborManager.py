@@ -123,7 +123,7 @@ class NeighborManager:
         #Checking if gateway is accessible
         if int(code) != 200:
             print(address," not accessible")
-            self.gateways.remove(address)
+            #self.gateways.remove(address)
             return ""
         else:
             with open('log','a') as f:
