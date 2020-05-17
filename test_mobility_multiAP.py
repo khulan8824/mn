@@ -38,30 +38,26 @@ def topology():
     c0 = net.addController('c0')
     i =1
     while i<11:
-        sta = net.addStation('sta'+str(i), position=str(random.randint(20,130))+','+str(random.randint(20,130))+',0')
-        #sta = net.addStation('sta'+str(i))
+        sta = net.addStation('sta'+str(i))
         nodes1.append(sta)
         i+=1
     
     
     i =11
     while i<21:
-        sta = net.addStation('sta'+str(i), position=str(random.randint(20,130))+','+str(random.randint(20,130))+',0', range=100)
-        #sta = net.addStation('sta'+str(i))
+        sta = net.addStation('sta'+str(i))
         nodes2.append(sta)
         i+=1
     
     i =21
     while i<31:
-        sta = net.addStation('sta'+str(i), position=str(random.randint(20,130))+','+str(random.randint(20,130))+',0', range=100)
-        #sta = net.addStation('sta'+str(i))
+        sta = net.addStation('sta'+str(i))
         nodes3.append(sta)
         i+=1
         
     i =31
     while i<41:
-        sta = net.addStation('sta'+str(i), position=str(random.randint(20,130))+','+str(random.randint(20,130))+',0', range=100)
-        #sta = net.addStation('sta'+str(i))
+        sta = net.addStation('sta'+str(i))
         nodes4.append(sta)
         i+=1
         
@@ -81,7 +77,7 @@ def topology():
     #net.plotGraph(max_x=150, max_y=150)    
     info("*** Configuring wifi nodes\n")
     net.configureWifiNodes()
-    #net.setMobilityModel(time=0, model='RandomDirection', max_x=150, max_y=150)
+    net.setMobilityModel(time=0, model='RandomDirection', max_x=150, max_y=150)
     
     info("*** Associating Stations\n")
     for node in nodes1:
@@ -131,7 +127,6 @@ def topology():
         
         
     for node in nodes1:
-        info()
         node.cmdPrint("nohup python main.py "+node.params['ip'][0].split("/")[0]+" &") 
         time.sleep(10)
         

@@ -21,13 +21,15 @@ def topology():
     
     ap1 = net.addAccessPoint('ap1', wlans=2, ssid='ssid1,', position='25,25,0')
     ap2 = net.addAccessPoint('ap2', wlans=2, ssid='ssid2,', position='50,50,0')
-    ap3 = net.addAccessPoint('ap3', wlans=2, ssid='ssid3,', position='75,75,0')    
+    ap3 = net.addAccessPoint('ap3', wlans=2, ssid='ssid3,', position='50,75,0')    
     ap4 = net.addAccessPoint('ap4', wlans=2, ssid='ssid4,', position='75,75,0')    
     
     #Gateway APs
     ap5 = net.addAccessPoint('ap5', wlans=2, ssid='ssid5,', position='40,40,0')
     ap6 = net.addAccessPoint('ap6', wlans=2, ssid='ssid6,', position='80,40,0')    
-    ap7 = net.addAccessPoint('ap7', wlans=2, ssid='ssid6,', position='50,60,0')
+    ap7 = net.addAccessPoint('ap7', wlans=2, ssid='ssid7,', position='50,60,0')
+    
+    #ap8 = net.addAccessPoint('ap8', wlans=2, ssid='ssid8', position = '33, 33,0')
     
     
     nodes1 = []
@@ -35,6 +37,7 @@ def topology():
     nodes3 = []
     nodes4 = []
     nodes5 = []
+    nodes6 = []
     
     c0 = net.addController('c0')
     i =1
@@ -131,16 +134,17 @@ def topology():
     
     
     
+    
     g1 = net.addHost('g1', cls=Host, position='15,15,0')  #ap5    
-    g2 = net.addHost('g2', cls=Host, position='35,35,0') #ap5
-    g3 = net.addHost('g3', cls=Host, position='55,55,0') #ap6
-    g4 = net.addHost('g4', cls=Host, position='75,75,0') #ap7
-    g5 = net.addHost('g5', cls=Host, position='85,15,0') #ap6
-    g6 = net.addHost('g6', cls=Host, position='65,35,0') #ap6
-    g7 = net.addHost('g7', cls=Host, position='45,55,0') #ap5
+    g2 = net.addHost('g2', cls=Host, position='35,35,0')  #ap5
+    g3 = net.addHost('g3', cls=Host, position='55,55,0')  #ap6
+    g4 = net.addHost('g4', cls=Host, position='75,75,0')  #ap7
+    g5 = net.addHost('g5', cls=Host, position='85,15,0')  #ap6
+    g6 = net.addHost('g6', cls=Host, position='65,35,0')  #ap6
+    g7 = net.addHost('g7', cls=Host, position='45,55,0')  #ap5
     g8 = net.addHost('g8', cls=Host, position='25,75,0')  #ap7
-    g9 = net.addHost('g9', cls=Host, position='50,50,0') #ap5
-    g10 = net.addHost('g10', cls=Host, position='75,25,0')#ap6
+    g9 = net.addHost('g9', cls=Host, position='50,50,0')  #ap5
+    g10 = net.addHost('g10', cls=Host, position='75,25,0') #ap6
     
     net.addLink(g1, ap5)
     net.addLink(g2, ap5)
@@ -154,6 +158,52 @@ def topology():
     net.addLink(g10, ap6)
     
         
+    
+    
+    
+    sta41 = net.addStation('sta41', position='34,29,0')    
+    sta42 = net.addStation('sta42', position='14,56,0')
+    sta43 = net.addStation('sta43', position='27,46,0')
+    sta44 = net.addStation('sta44', position='5,12,0')
+    sta45 = net.addStation('sta45', position='41,4,0')
+    sta46 = net.addStation('sta46', position='13,23,0')
+    sta47 = net.addStation('sta47', position='38,12,0')
+    sta48 = net.addStation('sta48', position='47,20,0')
+    sta49 = net.addStation('sta49', position='21,39,0')
+    sta50 = net.addStation('sta50', position='17,3,0')
+    nodes1.append(sta41)
+    nodes1.append(sta42)
+    nodes1.append(sta43)
+    nodes1.append(sta44)
+    nodes1.append(sta45)
+    nodes1.append(sta46)
+    nodes1.append(sta47)
+    nodes1.append(sta48)
+    nodes1.append(sta49)
+    nodes1.append(sta50)
+    
+    sta51 = net.addStation('sta51', position='85,29,0')    
+    sta52 = net.addStation('sta52', position='67,46,0')
+    sta53 = net.addStation('sta53', position='73,15,0')
+    sta54 = net.addStation('sta54', position='55,38,0')
+    sta55 = net.addStation('sta55', position='91,4,0')
+    sta56 = net.addStation('sta56', position='71,40,0')
+    sta57 = net.addStation('sta57', position='64,50,0')
+    sta58 = net.addStation('sta58', position='92,27,0')
+    sta59 = net.addStation('sta59', position='91,13,0')
+    sta60 = net.addStation('sta60', position='67,8,0')
+    nodes2.append(sta51)
+    nodes2.append(sta52)
+    nodes2.append(sta53)
+    nodes2.append(sta54)
+    nodes2.append(sta55)
+    nodes2.append(sta56)
+    nodes2.append(sta57)
+    nodes2.append(sta58)
+    nodes2.append(sta59)
+    nodes2.append(sta60)
+    
+    
     
     net.plotGraph(max_x=100, max_y=100)    
     info("*** Configuring wifi nodes\n")
@@ -173,14 +223,18 @@ def topology():
     for node in nodes4:        
         net.addLink(node, ap4)
         
+    
+    for node in nodes6:        
+        net.addLink(node, ap1)
+        
     #BAD GATEWAYS    
-    g1.cmdPrint("tc qdisc add dev g1-eth0 root netem delay 5ms")
-    g4.cmdPrint("tc qdisc add dev g4-eth0 root netem delay 4ms")
-    g7.cmdPrint("tc qdisc add dev g7-eth0 root netem delay 6ms")
+    g1.cmdPrint("tc qdisc add dev g1-eth0 root netem delay 40ms")
+    g4.cmdPrint("tc qdisc add dev g4-eth0 root netem delay 40ms")
+    g7.cmdPrint("tc qdisc add dev g7-eth0 root netem delay 40ms")
     
     # RANDOM DELAY GATEWAYS
-    g2.cmdPrint("tc qdisc add dev g2-eth0 root netem delay 1ms 1ms distribution normal")
-    g5.cmdPrint("tc qdisc add dev g5-eth0 root netem delay 1ms 2ms distribution normal")
+    g2.cmdPrint("tc qdisc add dev g2-eth0 root netem delay 5ms 4ms distribution normal")
+    g5.cmdPrint("tc qdisc add dev g5-eth0 root netem delay 5ms 5ms distribution normal")
     
         
     net.addLink(ap1, intf='ap1-wlan2', cls=mesh, ssid='mesh-ssid', channel=5)
@@ -190,6 +244,7 @@ def topology():
     net.addLink(ap5, intf='ap5-wlan2', cls=mesh, ssid='mesh-ssid', channel=5)
     net.addLink(ap6, intf='ap6-wlan2', cls=mesh, ssid='mesh-ssid', channel=5)
     net.addLink(ap7, intf='ap7-wlan2', cls=mesh, ssid='mesh-ssid', channel=5)
+
 
     info("*** Starting network\n")
     net.build()
