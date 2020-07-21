@@ -243,19 +243,15 @@ class NeighborManager:
             self.cnt +=1
             gatewayTable = self.getRecentGateways(sensing_time)
             gatewayTable = self.removeDuplicates(gatewayTable)
-            self.printGatewayTable(gatewayTable)
+            #self.printGatewayTable(gatewayTable)
             gatewayTable.extend(self.fillMissingValue(gatewayTable, sensing_time))
             self.categorizeByCapacity(gatewayTable, sensing_time)
-            #self.selectGateway(gatewayTable)
+            self.selectGateway(gatewayTable)
             neighbors = ""
             for neighbor in self.closeNeighbors:
                 neighbors += ','+neighbor
             print('Close neighbors', neighbors)
-            #self.selectBestGateway(gatewayTable)
-            self.selectRandomGateway(gatewayTable)
-            #self.selectAllBestGateway()
-            #self.printCosineSimilarity()
-            #self.printCount()
+            
         else:
             print("END")
 
@@ -389,7 +385,7 @@ class NeighborManager:
             elif bestLat> gw.latency:
                 bestGW = gw.address
                 bestLat = gw.latency
-        self.selected_best_gateway = bestGW
+        self.selected_gateway = bestGW
         with open('best_'+self.myAddress,'a') as f:
             f.write("{0},{1}\n".format(datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),bestGW))
             
@@ -409,7 +405,7 @@ class NeighborManager:
                 bestGW = key
                 bestLat = value
             
-        self.selected_all_best_gateway = bestGW
+        self.selected_gateway = bestGW
         with open('best_all_'+self.myAddress,'a') as f:
             f.write("{0},{1}\n".format(datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),bestGW))
             
@@ -421,7 +417,7 @@ class NeighborManager:
      
     def selectRandomGateway(self, gatewayTable):
         if self.selected_random_gateway not in self.selection_candidates:
-            self.selected_random_gateway = random.sample(set(self.selection_candidates), 1)[0]
+            self.selected_gateway = random.sample(set(self.selection_candidates), 1)[0]
         with open('selection_random_'+self.myAddress,'a') as f:
                 f.write("{0},{1}\n".format(datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),self.selected_random_gateway))
             
@@ -497,38 +493,14 @@ class NeighborManager:
         
     def downloadContent(self):
         ##########Downloading with power of 2 choices################
-        #status = True
-        #cmd='''curl http://'''+self.selected_gateway+''':8080/10Mb.dat -m 180 -w %{time_total},%{http_code} -o /dev/null -s'''
-        #command = Popen(shlex.split(cmd),stdout=PIPE, stderr=PIPE)
-        #stdout, stderr = command.communicate()
-        #lat, code = stdout.decode("utf-8").split(',')
-        #if int(code) != 200:
-        #    return
-        #else:
-        #    with open('download_'+self.myAddress,'a') as f:
-        #        f.write("{0},{1}\n".format(datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),str(lat.encode('ascii', 'ignore'))))
-        ########DOWNLOADING WITH RANDOM GW###################
         status = True
-        cmd='''curl http://'''+self.selected_random_gateway+''':8080/10Mb.dat -m 180 -w %{time_total},%{http_code} -o /dev/null -s'''
+        cmd='''curl http://'''+self.selected_gateway+''':8080/10Mb.dat -m 180 -w %{time_total},%{http_code} -o /dev/null -s'''
         command = Popen(shlex.split(cmd),stdout=PIPE, stderr=PIPE)
         stdout, stderr = command.communicate()
         lat, code = stdout.decode("utf-8").split(',')
         if int(code) != 200:
             return
         else:
-            with open('download_random_'+self.myAddress,'a') as f:
+            with open('download_'+self.myAddress,'a') as f:
                 f.write("{0},{1}\n".format(datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),str(lat.encode('ascii', 'ignore'))))
-                
-        ########DOWNLOADING WITH ALL BEST GW###################
-        #status = True
-        #if self.selected_all_best_gateway == "":
-        #    return
-        #cmd='''curl http://'''+self.selected_all_best_gateway+''':8080/10Mb.dat -m 180 -w %{time_total},%{http_code} -o /dev/null -s'''
-        #command = Popen(shlex.split(cmd),stdout=PIPE, stderr=PIPE)
-        #stdout, stderr = command.communicate()
-        #lat, code = stdout.decode("utf-8").split(',')
-        #if int(code) != 200:
-        #    return
-        #else:
-        #    with open('download_all_best_'+self.myAddress,'a') as f:
-        #        f.write("{0},{1}\n".format(datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),str(lat.encode('ascii', 'ignore'))))
+        

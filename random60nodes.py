@@ -6,6 +6,7 @@ from mininet.node import OVSController
 from mininet.cli import CLI
 from mininet.node import OVSKernelSwitch, UserSwitch  
 import random
+import time
 
 class MultiSwitchTopo(Topo):
     "multiple switch connected to n hostst"
@@ -24,9 +25,9 @@ class MultiSwitchTopo(Topo):
         switch1 = self.addSwitch('s1', cls=OVSKernelSwitch)
         switch2 = self.addSwitch('s2', cls=OVSKernelSwitch)
         switch3 = self.addSwitch('s3', cls=OVSKernelSwitch)
-	switch4 = self.addSwitch('s4', cls=OVSKernelSwitch)
-	switch5 = self.addSwitch('s5', cls=OVSKernelSwitch)
-	switch6 = self.addSwitch('s6', cls=OVSKernelSwitch)
+        switch4 = self.addSwitch('s4', cls=OVSKernelSwitch)
+        switch5 = self.addSwitch('s5', cls=OVSKernelSwitch)
+        switch6 = self.addSwitch('s6', cls=OVSKernelSwitch)
 
         switch7 = self.addSwitch('s7', cls=OVSKernelSwitch)
         switch8 = self.addSwitch('s8', cls=OVSKernelSwitch)
@@ -34,7 +35,7 @@ class MultiSwitchTopo(Topo):
         switch10 = self.addSwitch('s10', cls=OVSKernelSwitch)
         switch11 = self.addSwitch('s11', cls=OVSKernelSwitch)
         switch12 = self.addSwitch('s12', cls=OVSKernelSwitch)
-	
+        
         for h in range(len(addresses1)):
             host = self.addHost('h%s' % (h+1), ip=addresses1[h])
             self.addLink(host, switch1)
@@ -46,11 +47,11 @@ class MultiSwitchTopo(Topo):
         for h in range(len(addresses3)):
             host = self.addHost('h%s' % (len(addresses2)+len(addresses1)+h+1), ip=addresses3[h])
             self.addLink(host, switch3)
-	
+
         for h in range(len(addresses4)):
             host = self.addHost('h%s' % (len(addresses3)+len(addresses2)+len(addresses1)+h+1), ip=addresses4[h])
             self.addLink(host, switch4)
-	
+
         for h in range(len(addresses5)):
             host = self.addHost('h%s' % (len(addresses4)+len(addresses3)+len(addresses2)+len(addresses1)+h+1), ip=addresses5[h])
             self.addLink(host, switch5)
@@ -60,18 +61,18 @@ class MultiSwitchTopo(Topo):
             self.addLink(host, switch6)
 
         self.addLink(switch7, switch1)
-	self.addLink(switch8, switch2)
-	self.addLink(switch9, switch3)
-	self.addLink(switch10, switch4)	
-	self.addLink(switch11, switch5)
-	self.addLink(switch12, switch6)
-	
-	self.addLink(switch, switch7)
+        self.addLink(switch8, switch2)
+        self.addLink(switch9, switch3)
+        self.addLink(switch10, switch4)	
+        self.addLink(switch11, switch5)
+        self.addLink(switch12, switch6)
+        
+        self.addLink(switch, switch7)
         self.addLink(switch, switch8)
-	self.addLink(switch, switch9)
-	self.addLink(switch, switch10)
-	self.addLink(switch, switch11)
-	self.addLink(switch, switch12)
+        self.addLink(switch, switch9)
+        self.addLink(switch, switch10)
+        self.addLink(switch, switch11)
+        self.addLink(switch, switch12)
 
 
         for g in range(len(gwAddresses)):
@@ -87,73 +88,60 @@ def simpleTest():
     print("Dumping host connection")
     popens = {}
     for h in net.hosts:
-	if h.name.startswith('g'):
-	    randDelay = random.randint(0,4)
-	    #h.cmdPrint("tc qdisc add dev %s-eth0 root netem delay 0ms %dms"%(h.name, randDelay))
-	    #h.cmdPrint('python -m SimpleHTTPServer 8080 &')
-	   
+        if h.name.startswith('g'):
+            randDelay = random.randint(1,4)
+            h.cmdPrint("tc qdisc add dev %s-eth0 root netem delay 1ms %dms"%(h.name, randDelay))
+    
     popens = {}
     for h in net.switches:
 
         if h.name=='s1':
-	    for n in range(10):
-		randDelay = random.randint(1,3)
-        	h.cmdPrint("tc qdisc add dev s1-eth%d root netem delay %dms"%(n+1, randDelay))
+            for n in range(10):
+                randDelay = random.randint(1,3)
+                h.cmdPrint("tc qdisc add dev s1-eth%d root netem delay %dms"%(n+1, randDelay))
 
         elif h.name == 's2':
-	    for n in range(10):
-		randDelay = random.randint(1,3)
-        	h.cmdPrint("tc qdisc add dev s2-eth%d root netem delay %dms"%(n+1, randDelay))
-
+            for n in range(10):
+                randDelay = random.randint(1,3)
+                h.cmdPrint("tc qdisc add dev s2-eth%d root netem delay %dms"%(n+1, randDelay))
         elif h.name == 's3':
-	    for n in range(10):
-		randDelay = random.randint(1,5)
-        	h.cmdPrint("tc qdisc add dev s3-eth%d root netem delay %dms"%(n+1, randDelay))
+            for n in range(10):
+                randDelay = random.randint(1,2)
+                h.cmdPrint("tc qdisc add dev s3-eth%d root netem delay %dms"%(n+1, randDelay))
 
         elif h.name == 's4':
-	    for n in range(10):
-		randDelay = random.randint(1,3)
-        	h.cmdPrint("tc qdisc add dev s4-eth%d root netem delay %dms"%(n+1, randDelay))
+            for n in range(10):
+                randDelay = random.randint(1,3)
+                h.cmdPrint("tc qdisc add dev s4-eth%d root netem delay %dms"%(n+1, randDelay))
 
-        elif h.name == 's5':
-	    for n in range(10):
-		randDelay = random.randint(1,4)
-        	h.cmdPrint("tc qdisc add dev s5-eth%d root netem delay %dms"%(n+1, randDelay))
+        #elif h.name == 's7':
+        #    h.cmdPrint("tc qdisc add dev s1-eth11 root netem delay 5ms")
 
-        elif h.name == 's6':
-	    for n in range(10):
-		randDelay = random.randint(1,5)
-        	h.cmdPrint("tc qdisc add dev s6-eth%d root netem delay %dms"%(n+1, randDelay))
-	
-        elif h.name == 's7':
-            h.cmdPrint("tc qdisc add dev s1-eth11 root netem delay 5ms")
+        #elif h.name == 's8':
+        #    h.cmdPrint("tc qdisc add dev s2-eth11 root netem delay 5ms")
 
-        elif h.name == 's8':
-            h.cmdPrint("tc qdisc add dev s2-eth11 root netem delay 5ms")
+        #elif h.name == 's9':
+        #    h.cmdPrint("tc qdisc add dev s3-eth11 root netem delay 5ms")
 
-        elif h.name == 's9':
-            h.cmdPrint("tc qdisc add dev s3-eth11 root netem delay 5ms")
+        #elif h.name == 's10':
+        #    h.cmdPrint("tc qdisc add dev s4-eth11 root netem delay 5ms")    
+        #elif h.name == 's11':
+        #    h.cmdPrint("tc qdisc add dev s5-eth11 root netem delay 5ms")
 
-        elif h.name == 's10':
-            h.cmdPrint("tc qdisc add dev s4-eth11 root netem delay 5ms")
-	    
-        elif h.name == 's11':
-            h.cmdPrint("tc qdisc add dev s5-eth11 root netem delay 5ms")
+        #elif h.name == 's12':
+        #    h.cmdPrint("tc qdisc add dev s6-eth11 root netem delay 5ms")
 
-        elif h.name == 's12':
-            h.cmdPrint("tc qdisc add dev s6-eth11 root netem delay 5ms")
+    for h in net.hosts:
+        if h.name.startswith('g'):
+            h.cmdPrint('nohup python -m SimpleHTTPServer 8080 &')
+            
+    for h in net.hosts:
+        if h.name.startswith('h') and h.name in ['h1', 'h2', 'h3','h4', 'h5', 'h6', 'h7','h8', 'h9', 'h10', 'h11', 'h12', 'h13', 'h14', 'h15', 'h16', 'h17', 'h18', 'h19', 'h20', 'h21','h22', 'h23', 'h24','h24','h25','h26','h27','h28', 'h29',
+                                                'h30','h31','h32','h33','h34','h35','h36','h37','h38','h39','h40']:
+            h.cmdPrint('nohup python main.py %s &'%h.IP())            
+            time.sleep(2)
+
     CLI(net)
-    #for h in net.hosts:
-#	if h.name.startswith('g'):
-#	    randDelay = random.randint(0,4)
-#	    #h.cmdPrint("tc qdisc add dev %s-eth0 root netem delay 0ms %dms"%(h.name, randDelay))
-#	    h.cmdPrint('python -m SimpleHTTPServer 8080 &')
-
-    #for h in net.hosts:
-#	if h.name.startswith('h') and h.name in ['h1', 'h2', 'h3','h4', 'h5', 'h6', 'h7','h8', 'h9', 'h10', 'h11', 'h12', 'h13', 'h14', 'h15', 'h16', 'h17', 'h18', 'h19', 'h20']:
-#	    h.cmdPrint('python main.py %s &'%h.IP())
-	
-#    CLI(net)
 
 if __name__ == "__main__":
     setLogLevel('info')

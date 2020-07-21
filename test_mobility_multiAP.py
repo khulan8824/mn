@@ -5,7 +5,7 @@
 from mininet.node import Controller, Host
 from mininet.log import setLogLevel, info
 from mn_wifi.link import wmediumd, mesh
-from mn_wifi.cli import CLI_wifi
+from mn_wifi.cli import CLI
 from mn_wifi.net import Mininet_wifi
 from mn_wifi.wmediumdConnector import interference
 
@@ -74,7 +74,7 @@ def topology():
     g10 = net.addHost('g10',  cls=Host,  position=str(random.randint(20,130))+','+str(random.randint(20,130))+',0') 
         
     
-    #net.plotGraph(max_x=150, max_y=150)    
+    
     info("*** Configuring wifi nodes\n")
     net.configureWifiNodes()
     net.setMobilityModel(time=0, model='RandomDirection', max_x=150, max_y=150)
@@ -127,21 +127,21 @@ def topology():
         
         
     for node in nodes1:
-        node.cmdPrint("nohup python main.py "+node.params['ip'][0].split("/")[0]+" &") 
-        time.sleep(10)
+        node.cmdPrint("nohup python main.py "+node.params['ip'].split("/")[0]+" &") 
+        time.sleep(5)
         
     
     
     for node in nodes2:
-        node.cmdPrint("nohup python main.py "+node.params['ip'][0].split("/")[0]+" &") 
-        time.sleep(10)
+        node.cmdPrint("nohup python main.py "+node.params['ip'].split("/")[0]+" &") 
+        time.sleep(5)
     
     for node in nodes3:
-        node.cmdPrint("nohup python main.py "+node.params['ip'][0].split("/")[0]+" &") 
-        time.sleep(10)
+        node.cmdPrint("nohup python main.py "+node.params['ip'].split("/")[0]+" &") 
+        time.sleep(5)
         
     for node in nodes4:
-        node.cmdPrint("nohup python main.py "+node.params['ip'][0].split("/")[0]+" &") 
+        node.cmdPrint("nohup python main.py "+node.params['ip'].split("/")[0]+" &") 
         time.sleep(10)
         
         
@@ -166,7 +166,7 @@ def topology():
     ap7.start([c0])
 
     info("*** Running CLI\n")
-    CLI_wifi(net)
+    CLI(net)
 
     info("*** Stopping network\n")
     net.stop()

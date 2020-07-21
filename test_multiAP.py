@@ -5,7 +5,7 @@
 from mininet.node import Controller, Host
 from mininet.log import setLogLevel, info
 from mn_wifi.link import wmediumd, mesh
-from mn_wifi.cli import CLI_wifi
+from mn_wifi.cli import CLI
 from mn_wifi.net import Mininet_wifi
 from mn_wifi.wmediumdConnector import interference
 
@@ -132,21 +132,21 @@ def topology():
         
     for node in nodes1:
         info()
-        node.cmdPrint("nohup python main.py "+node.params['ip'][0].split("/")[0]+" &") 
+        node.cmdPrint("nohup python main.py "+node.params['ip'].split("/")[0]+" &") 
         time.sleep(10)
         
     
     
     for node in nodes2:
-        node.cmdPrint("nohup python main.py "+node.params['ip'][0].split("/")[0]+" &") 
+        node.cmdPrint("nohup python main.py "+node.params['ip'].split("/")[0]+" &") 
         time.sleep(10)
     
     for node in nodes3:
-        node.cmdPrint("nohup python main.py "+node.params['ip'][0].split("/")[0]+" &") 
+        node.cmdPrint("nohup python main.py "+node.params['ip'].split("/")[0]+" &") 
         time.sleep(10)
         
     for node in nodes4:
-        node.cmdPrint("nohup python main.py "+node.params['ip'][0].split("/")[0]+" &") 
+        node.cmdPrint("nohup python main.py "+node.params['ip'].split("/")[0]+" &") 
         time.sleep(10)
         
         
