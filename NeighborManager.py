@@ -116,7 +116,7 @@ class NeighborManager:
     def pingGateway(self,address):
         status = True
         #cmd='''curl http://'''+address+''':8080/1Mb.dat -m 300 -w %{time_total},%{http_code} -o /dev/null -s'''
-         cmd='''curl -x '''+address+''':3128 -U david.pinilla:"|Jn 5DJ\\7inbNniK|m@^ja&>C" -m 180 -w %{time_total},%{http_code} http://ovh.net/files/1Mb.dat -o /dev/null -s'''
+        cmd='''curl -x '''+address+''':3128 -U david.pinilla:"|Jn 5DJ\\7inbNniK|m@^ja&>C" -m 180 -w %{time_total},%{http_code} http://ovh.net/files/1Mb.dat -o /dev/null -s'''
         command = Popen(shlex.split(cmd),stdout=PIPE, stderr=PIPE)
         stdout, stderr = command.communicate()
         lat, code = stdout.decode("utf-8").split(',')
