@@ -79,7 +79,7 @@ class NeighborManager:
             values = [v for v in self.logs if v.sender == n and (datetime.datetime.now() - v.ts).seconds < (self.period*3+10)]
             if len(values)==0:
                 if n in self.trustScore:
-                    print('Not received from', n)
+                    #print('Not received from', n)
                     self.trustScore.update({n:2})
                     self.closeNeighbors.remove(n)
                 
@@ -123,7 +123,7 @@ class NeighborManager:
         
         #Checking if gateway is accessible
         if int(code) != 200:
-            print(address," not accessible")
+            #print(address," not accessible")
             #self.gateways.remove(address)
             return ""
         else:
@@ -177,10 +177,6 @@ class NeighborManager:
     def printGatewayTable(self, gatewayTable):
         #for gw in self.gatewayTable:
         for gw in gatewayTable:
-            #with open('gw_table_'+self.myAddress,'a') as f:
-                #f.write("{0},{1},{2},{3},{4}\n".format(self.gatewayTable[gw].ts.strftime("%Y-%m-%d %H:%M:%S"),str(self.gatewayTable[gw].address), str(self.gatewayTable[gw].latency), str(self.gatewayTable[gw].stdev), str(self.gatewayTable[gw].category)))
-                #print(self.gatewayTable[gw].ts.strftime("%Y-%m-%d %H:%M:%S"), str(self.gatewayTable[gw].address), str(self.gatewayTable[gw].latency), str(self.gatewayTable[gw].stdev), self.gatewayTable[gw].category)
-                #f.write("{0},{1},{2},{3},{4}\n".format(gw.ts.strftime("%Y-%m-%d %H:%M:%S"),str(gw.address), str(gw.latency), str(gw.stdev), str(gw.category)))
             print(gw.ts.strftime("%Y-%m-%d %H:%M:%S"), str(gw.address), str(gw.latency), str(gw.stdev),gw.category)
 
 #Sensing gateway nodes performances and sending to the close neighboers
@@ -193,7 +189,7 @@ class NeighborManager:
         for g in gws:
             lat = self.pingGateway(g)
             self.senseCount += 1
-            print("latency to",g,lat)
+            #print("latency to",g,lat)
             if str(lat) == "":
                 continue
             self.setGatewayTable(datetime.datetime.now(), g, float(lat), self.myAddress)          
@@ -251,7 +247,7 @@ class NeighborManager:
             neighbors = ""
             for neighbor in self.closeNeighbors:
                 neighbors += ','+neighbor
-            print('Close neighbors', neighbors)
+            print(self.cnt, '>>Close neighbors', neighbors)
             
         else:
             print("END")
@@ -315,7 +311,7 @@ class NeighborManager:
         if len(uniqueGateways) == 0:
             return []
         ts1 = [x.ts for x in uniqueGateways][0]
-        print("Missing gws", missingGateways)
+        #print("Missing gws", missingGateways)
         #Find last 5 measurements from the logs
         for gw1 in missingGateways:
             missingGatewayMeasurements = self.getKRecentGateways(gw1, 5, ts)
@@ -329,7 +325,7 @@ class NeighborManager:
             prediction = model.predict(np.array([x for x in range(len(Y),len(Y)+1)]).reshape(-1,1))
             missingGw = gw.Gateway(ts1, gw1, prediction[0], self.myAddress)
             missingGw = self.setCategory(missingGw)
-            print("predicted",missingGw.address, missingGw.latency)
+            #print("predicted",missingGw.address, missingGw.latency)
             returnGWs.append(missingGw)
         return returnGWs
     
@@ -337,7 +333,7 @@ class NeighborManager:
         for gw in gateways:
             #Get last 10 historical values
             gatewayHistories = self.getKRecentGateways(gw.address, 10, ts)
-            print(gw.address, len(gatewayHistories), ":",[x.category for x in gatewayHistories])
+            #print(gw.address, len(gatewayHistories), ":",[x.category for x in gatewayHistories])
             countGood = len([ x for x in gatewayHistories if x.category=="good"])
             countInconsistent = len([ x for x in gatewayHistories if x.category=="inconsistent"])
             countBad = len([ x for x in gatewayHistories if x.category=="bad"])
@@ -456,35 +452,34 @@ class NeighborManager:
             return float(stdout.split('/')[-3])
         
     def checkNeighbor(self, node):        
-        print('Checking neighbor', node)
+        #print('Checking neighbor', node)
         if node == self.myAddress:
             return
         rtt = self.ping(node)
         if rtt < self.trshld:
             self.closeNeighbors.append(node)
-            print('appending',node)
+            #print('appending',node)
             
     def senseNeighbors(self):
-        print("Sensing neighbors")
+        #print("Sensing neighbors")
         for n in self.neighbors:
             if n == self.myAddress:
                 continue
             rtt = self.ping(n)
-            #print(n, rtt)
             if rtt<self.trshld:
                 self.closeNeighbors.append(n)
-        print("Close neighbors", self.closeNeighbors)
+        #print("Close neighbors", self.closeNeighbors)
 
     def senseGateways(self):
         if len(self.gateways)>8:
             return
-        print("Sensing gateways")
+        #print("Sensing gateways")
         for n in self.originalGateways:
             rtt = self.ping(n)
             #print(n, rtt)
             if rtt != '' and rtt>0 and n not in self.gateways:
                 self.gateways.append(n)
-                print('added gateway:', n)
+                #print('added gateway:', n)
         
 ##############DOWNLOAD USING SELECTED GATEWAY##################
     def download(self):
