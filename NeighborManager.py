@@ -467,7 +467,8 @@ class NeighborManager:
                 continue
             rtt = self.ping(n)
             if rtt<self.trshld:
-                self.closeNeighbors.append(n)
+                if n not in self.closeNeighbors:
+                    self.closeNeighbors.append(n)
         #print("Close neighbors", self.closeNeighbors)
 
     def senseGateways(self):
