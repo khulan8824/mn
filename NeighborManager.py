@@ -210,9 +210,12 @@ class NeighborManager:
             addr = self.closeNeighbors
         #Connecting with close neighbors through their IP address and 5555 port
         #txt variable contains all the measurements to be sent
+        
+        print("Sending<<<",len(addr),addr)
         for n in addr:
             if n in self.closeNeighbors:
                 self.sendCount += 1
+            
             if n == self.myAddress:
                 continue
             f = protocol.ClientFactory()
@@ -233,7 +236,7 @@ class NeighborManager:
         else:
             self.topK = len(self.gateways)/2+1
             
-        if self.cnt <400:            
+        if self.cnt <100:
             sensing_time = datetime.datetime.now()
             reactor.callLater(self.period, self.send)
             self.sense()
@@ -247,7 +250,7 @@ class NeighborManager:
             neighbors = ""
             for neighbor in self.closeNeighbors:
                 neighbors += ','+neighbor
-            print(self.cnt, '>>Close neighbors', neighbors)
+            #print(self.cnt, '>>Close neighbors', neighbors)
             
         else:
             print("END")
