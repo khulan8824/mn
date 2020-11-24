@@ -356,6 +356,7 @@ class NeighborManager:
             else:
                 gw.capacityCategory = "inconsistent"        
         candidates = [x.address for x in gateways if x.capacityCategory in ["good", "limited"]]
+        print("gateways", gateways)
         print("gateway selection candidates:",candidates)
         self.selection_candidates = candidates
         
