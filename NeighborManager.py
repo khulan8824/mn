@@ -145,7 +145,8 @@ class NeighborManager:
         print(sender, address, latency)
         print(self.trustScore)
 
-        if sender in dict(sorted(self.trustScore.items(),key=lambda kv: kv[1])[:self.topK]) or len(self.trustScore)<=self.topK or sender == self.myAddress:
+        if sender in dict(sorted(self.trustScore.items(),key=lambda kv: kv[1])[:self.topK]):
+        #or len(self.trustScore)<=self.topK or sender == self.myAddress:
             previous_gws= self.get2RecentGateways(gateway)
             cnt = 1
             value = 0
