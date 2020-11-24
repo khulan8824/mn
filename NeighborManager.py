@@ -144,7 +144,7 @@ class NeighborManager:
         gateway = gw.Gateway(ts, address, latency, sender)
         #print(sender, address, latency)
         #print(self.trustScore)
-        print(self.topK, len(self.trustScore))
+        #print(self.topK, len(self.trustScore))
         if sender in dict(sorted(self.trustScore.items(),key=lambda kv: kv[1])[:self.topK]):
         #or len(self.trustScore)<=self.topK or sender == self.myAddress:
             previous_gws= self.get2RecentGateways(gateway)
@@ -242,7 +242,7 @@ class NeighborManager:
         #if len(self.gateway_candidates)> 0:
         #    self.topK = round(len(self.gateway_candidates)/2)
         #else:
-        self.topK = round(len(self.gateways)/2)
+        self.topK = int(round(len(self.gateways)/2))
             
         if self.cnt <20:
             sensing_time = datetime.datetime.now()
