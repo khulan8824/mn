@@ -76,12 +76,14 @@ class NeighborManager:
         
     def checkNodeActive(self):        
         for n in self.closeNeighbors:
-            values = [v for v in self.logs if v.sender == n and (datetime.datetime.now() - v.ts).seconds < (self.period*3+10)]
+            values = [v for v in self.logs if v.sender == n and (datetime.datetime.now() - v.ts).seconds < (self.period+30)]
             if len(values)==0:
                 if n in self.trustScore:
-                    #print('Not received from', n)
-                    self.trustScore.update({n:2})
-                    self.closeNeighbors.remove(n)
+                    old_score = self.trustScore.get(n)                    
+                    score = old_score*0.33                    
+                    print('Not received from', n, old_score, score)
+                    self.trustScore.update({n:score})
+                    #self.closeNeighbors.remove(n)
                 
         
     ########HELPER FUNCTIONS#######
