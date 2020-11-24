@@ -81,9 +81,8 @@ class NeighborManager:
                 if n in self.trustScore:
                     old_score = self.trustScore.get(n)                    
                     score = old_score*0.33                    
-                    print('Not received from', n, old_score, score)
+                    #print('Not received from', n, old_score, score)
                     self.trustScore.update({n:score})
-                    #self.closeNeighbors.remove(n)
                 
         
     ########HELPER FUNCTIONS#######
@@ -213,7 +212,11 @@ class NeighborManager:
         #Connecting with close neighbors through their IP address and 5555 port
         #txt variable contains all the measurements to be sent
         
-        print("Sending<<<",len(addr),addr)
+        #print("Sending<<<",len(addr),addr)
+        print("============Trust scores=============")
+        for n in self.trustScore:
+            print(n, self.trustScore.get(n))
+            
         for n in addr:
             if n in self.closeNeighbors:
                 self.sendCount += 1
@@ -234,26 +237,23 @@ class NeighborManager:
 #Run periodically to sense and then send measurements        
     def send(self):
         if len(self.gateway_candidates)> 0:
-            self.topK = len(self.gateway_candidates)/2+1
+            self.topK = round(len(self.gateway_candidates)/2)
         else:
             self.topK = len(self.gateways)/2+1
             
-        if self.cnt <100:
+        if self.cnt <20:
             sensing_time = datetime.datetime.now()
             reactor.callLater(self.period, self.send)
             self.sense()
             self.cnt +=1
             gatewayTable = self.getRecentGateways(sensing_time)
             gatewayTable = self.removeDuplicates(gatewayTable)
-            #self.printGatewayTable(gatewayTable)
             gatewayTable.extend(self.fillMissingValue(gatewayTable, sensing_time))
             self.categorizeByCapacity(gatewayTable, sensing_time)
             self.selectGateway(gatewayTable)
             neighbors = ""
             for neighbor in self.closeNeighbors:
-                neighbors += ','+neighbor
-            #print(self.cnt, '>>Close neighbors', neighbors)
-            
+                neighbors += ','+neighbor            
         else:
             print("END")
 
@@ -423,10 +423,7 @@ class NeighborManager:
         with open('selection_random_'+self.myAddress,'a') as f:
                 f.write("{0},{1}\n".format(datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),self.selected_random_gateway))
             
-    #def printCount(self):
-        #with open('sent_'+self.myAddress,'a') as f:
-        #        f.write("{0},{1}\n".format(datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),str(self.topK)))
-                
+    
     def printCosineSimilarity(self):
         total = 0
         count1 = 0
