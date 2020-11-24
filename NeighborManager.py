@@ -142,8 +142,8 @@ class NeighborManager:
         for key in delete: 
             del self.gatewayTable[key] 
         gateway = gw.Gateway(ts, address, latency, sender)
-        print(sender, address, latency)
-        print(self.trustScore)
+        #print(sender, address, latency)
+        #print(self.trustScore)
 
         if sender in dict(sorted(self.trustScore.items(),key=lambda kv: kv[1])[:self.topK]):
         #or len(self.trustScore)<=self.topK or sender == self.myAddress:
@@ -239,10 +239,10 @@ class NeighborManager:
 
 #Run periodically to sense and then send measurements        
     def send(self):
-        if len(self.gateway_candidates)> 0:
-            self.topK = round(len(self.gateway_candidates)/2)
-        else:
-            self.topK = len(self.gateways)/2+1
+        #if len(self.gateway_candidates)> 0:
+        #    self.topK = round(len(self.gateway_candidates)/2)
+        #else:
+        self.topK = round(len(self.gateways)/2)
             
         if self.cnt <20:
             sensing_time = datetime.datetime.now()
