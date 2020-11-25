@@ -354,9 +354,10 @@ class NeighborManager:
             elif countGood>countBad and countBad>countInconsistent:
                 gw.capacity = "limited"
             else:
-                gw.capacityCategory = "inconsistent"        
+                gw.capacityCategory = "inconsistent"
+            print(gw.address, gw.capacityCategory)
         candidates = [x.address for x in gateways if x.capacityCategory in ["good", "limited"]]
-        print("gateways", gateways)
+        #print("gateways", gateways)
         #print("gateway selection candidates:",candidates)
         self.selection_candidates = candidates
         
