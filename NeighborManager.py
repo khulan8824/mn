@@ -259,6 +259,7 @@ class NeighborManager:
                 neighbors += ','+neighbor            
         else:
             print("END")
+            sys.exit()
 
 ####################COSINE SIMILARITY#################
     def square_rooted(self, x): 
@@ -356,9 +357,9 @@ class NeighborManager:
             else:
                 gw.capacityCategory = "inconsistent"
             print(gw.address, gw.capacityCategory)
-        candidates = [x.address for x in gateways if x.capacityCategory in ["good", "limited"]]
+        candidates = set([x.address for x in gateways if x.capacityCategory in ["good", "limited"]])
         #print("gateways", gateways)
-        #print("gateway selection candidates:",candidates)
+        print("gateway selection candidates:",candidates)
         self.selection_candidates = candidates
         
     def selectGateway(self, gatewayTable):
