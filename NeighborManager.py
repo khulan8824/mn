@@ -85,8 +85,8 @@ class NeighborManager:
                     self.trustScore.update({n:score})
                     
     def process(self, sender, info):
-        
         if sender in self.closeNeighbors:
+            print("Received from>>", sender)
             l = []
             for gwInfo in info:
                 ts, address, latency, sender  = gwInfo.split(',')
