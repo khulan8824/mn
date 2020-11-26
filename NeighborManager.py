@@ -216,7 +216,7 @@ class NeighborManager:
         #txt variable contains all the measurements to be sent
         
         #print("Sending<<<",len(addr),addr)
-        print("============Trust scores=============")
+        #print("============Trust scores=============")
         for n in self.trustScore:
             print(n, self.trustScore.get(n))
             
@@ -226,6 +226,7 @@ class NeighborManager:
             
             if n == self.myAddress:
                 continue
+            print("sending>", n)
             f = protocol.ClientFactory()
             f.protocol = client.MessageClientProtocol        
             f.protocol.addr = n
@@ -259,7 +260,7 @@ class NeighborManager:
                 neighbors += ','+neighbor            
         else:
             print("END")
-            sys.exit()
+            sys.exit(0)
 
 ####################COSINE SIMILARITY#################
     def square_rooted(self, x): 
