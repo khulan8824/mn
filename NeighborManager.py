@@ -83,6 +83,19 @@ class NeighborManager:
                     score = old_score*0.33                    
                     #print('Not received from', n, old_score, score)
                     self.trustScore.update({n:score})
+                    
+    def process(self, sender, info):
+        
+        if sender in self.closeNeighbors:
+            l = []
+            for gwInfo in info:
+                ts, address, latency, sender  = gwInfo.split(',')
+                temp = gt.Gateway(ts, address, latency, sender)
+                l.append(temp)
+                self.setGatewayTable(datetime.datetime.strptime(ts, "%Y-%m-%d %H:%M:%S"), str(address.encode('ascii', 'ignore')) ,float(latency.encode('ascii', 'ignore')),str(sender.encode('ascii', 'ignore')))
+        
+        
+        self.calculateTrustScore(sender.encode('ascii', 'ignore'),l)
                 
         
     ########HELPER FUNCTIONS#######
@@ -321,21 +334,17 @@ class NeighborManager:
         if len(uniqueGateways) == 0:
             return []
         ts1 = [x.ts for x in uniqueGateways][0]
-        #print("Missing gws", missingGateways)
         #Find last 5 measurements from the logs
         for gw1 in missingGateways:
             missingGatewayMeasurements = self.getKRecentGateways(gw1, 5, ts)
             if len(missingGatewayMeasurements)<5:
                 continue
             Y = np.array([float(x.latency) for x in missingGatewayMeasurements]).astype(np.float64)
-            #X = np.array([x.ts for x in missingGatewayMeasurements]).reshape(-1,1)
             X = np.array([x for x in range(0,len(Y))]).reshape(-1,1)
             model = LinearRegression().fit(X,Y)
-            #Predict next 1 measurement
             prediction = model.predict(np.array([x for x in range(len(Y),len(Y)+1)]).reshape(-1,1))
             missingGw = gw.Gateway(ts1, gw1, prediction[0], self.myAddress)
             missingGw = self.setCategory(missingGw)
-            #print("predicted",missingGw.address, missingGw.latency)
             returnGWs.append(missingGw)
         return returnGWs
     
