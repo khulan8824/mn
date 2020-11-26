@@ -90,7 +90,7 @@ class NeighborManager:
             l = []
             for gwInfo in info:
                 ts, address, latency, sender  = gwInfo.split(',')
-                temp = gt.Gateway(ts, address, latency, sender)
+                temp = gw.Gateway(ts, address, latency, sender)
                 l.append(temp)
                 self.setGatewayTable(datetime.datetime.strptime(ts, "%Y-%m-%d %H:%M:%S"), str(address.encode('ascii', 'ignore')) ,float(latency.encode('ascii', 'ignore')),str(sender.encode('ascii', 'ignore')))
         
