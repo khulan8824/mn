@@ -85,6 +85,7 @@ class NeighborManager:
                     self.trustScore.update({n:score})
                     
     def process(self, sender, info):
+        self.receiveCount +=1
         if sender in self.closeNeighbors:
             print("Received from>>", sender)
             l = []
@@ -93,8 +94,6 @@ class NeighborManager:
                 temp = gw.Gateway(ts, address, latency, sender)
                 l.append(temp)
                 self.setGatewayTable(datetime.datetime.strptime(ts, "%Y-%m-%d %H:%M:%S"), str(address.encode('ascii', 'ignore')) ,float(latency.encode('ascii', 'ignore')),str(sender.encode('ascii', 'ignore')))
-        
-        
         self.calculateTrustScore(sender.encode('ascii', 'ignore'),l)
                 
         
@@ -155,11 +154,7 @@ class NeighborManager:
         for key in delete: 
             del self.gatewayTable[key] 
         gateway = gw.Gateway(ts, address, latency, sender)
-        #print(sender, address, latency)
-        #print(self.trustScore)
-        #print(self.topK, len(self.trustScore))
-        if sender in dict(sorted(self.trustScore.items(),key=lambda kv: kv[1])[:self.topK]):
-        #or len(self.trustScore)<=self.topK or sender == self.myAddress:
+        if sender in dict(sorted(self.trustScore.items(),key=lambda kv: kv[1])[:self.topK]) or len(self.trustScore)<=self.topK:
             previous_gws= self.get2RecentGateways(gateway)
             cnt = 1
             value = 0
@@ -227,19 +222,12 @@ class NeighborManager:
             addr = self.closeNeighbors
         #Connecting with close neighbors through their IP address and 5555 port
         #txt variable contains all the measurements to be sent
-        
-        #print("Sending<<<",len(addr),addr)
-        #print("============Trust scores=============")
-        for n in self.trustScore:
-            print(n, self.trustScore.get(n))
-            
+           
         for n in addr:
-            if n in self.closeNeighbors:
-                self.sendCount += 1
-            
+            self.sendCount += 1
+
             if n == self.myAddress:
                 continue
-            print("sending>", n)
             f = protocol.ClientFactory()
             f.protocol = client.MessageClientProtocol        
             f.protocol.addr = n
@@ -262,15 +250,20 @@ class NeighborManager:
             sensing_time = datetime.datetime.now()
             reactor.callLater(self.period, self.send)
             self.sense()
-            self.cnt +=1
             gatewayTable = self.getRecentGateways(sensing_time)
             gatewayTable = self.removeDuplicates(gatewayTable)
             gatewayTable.extend(self.fillMissingValue(gatewayTable, sensing_time))
             self.categorizeByCapacity(gatewayTable, sensing_time)
             self.selectGateway(gatewayTable)
-            neighbors = ""
-            for neighbor in self.closeNeighbors:
-                neighbors += ','+neighbor            
+
+            with open('messages_'+self.myAddress,'a') as f:
+                f.write("{0},{1},{2},{3}\n".format(datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"), str(self.cnt) , str(self.sendCount), str(self.receiveCount)))                
+            self.sendCount = 0
+            self.receiveCount = 0
+            
+            print("============ Round",self.cnt,"================")
+            self.cnt +=1
+            
         else:
             print("END")
             sys.exit(0)
