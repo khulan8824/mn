@@ -384,11 +384,7 @@ class NeighborManager:
             if len(self.selection_candidates) == 0:
                 return
             elif len(self.selection_candidates) == 1:
-<<<<<<< HEAD
                 self.selected_gateway = next(iter(self.selection_candidates))
-=======
-                self.selected_gateway = next(iter(self.selection_candidates)) #get the first element from the set
->>>>>>> 642e974e9a8ce7a80c2426881a224fc6cbb42a7c
             else:
                 gws = random.sample(set(self.selection_candidates), 2)
                 gw1 = [x for x in gatewayTable if x.address == gws[0]][0]
@@ -451,11 +447,7 @@ class NeighborManager:
     def printCosineSimilarity(self):
         total = 0
         count1 = 0
-<<<<<<< HEAD
-	sensing_time = datetime.datetime.now()
-=======
         sensing_time = datetime.datetime.now()
->>>>>>> 642e974e9a8ce7a80c2426881a224fc6cbb42a7c
         recent = self.getRecentGateways(sensing_time)
         print("=======================COSINE SIMILARITY MEASUREMENT================")
         print([x.address for x in recent])
