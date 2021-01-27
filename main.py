@@ -49,7 +49,7 @@ nm = neighbor.NeighborManager()
 nm.myAddress = str(sys.argv[1])
 nm.neighbors = addresses
 nm.gateways = gwAddresses
-nm.trshld = 10
+nm.trshld = 5
 nm.period = 120
 nm.sampleSize = 3
 
