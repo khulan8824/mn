@@ -237,7 +237,7 @@ class NeighborManager:
                 reactor.run()
                 
         #self.printGatewayTable()
-        #self.printCosineSimilarity()
+        self.printCosineSimilarity()
 
 #Run periodically to sense and then send measurements        
     def send(self):
@@ -246,7 +246,7 @@ class NeighborManager:
         #else:
         self.topK = int(round(len(self.gateways)/2))
             
-        if self.cnt <20:
+        if self.cnt <100:
             sensing_time = datetime.datetime.now()
             reactor.callLater(self.period, self.send)
             self.sense()
@@ -275,7 +275,10 @@ class NeighborManager:
     def cosine_similarity(self, x,y):
         numerator = sum(a*b for a,b in zip(x,y))
         denominator = self.square_rooted(x)*self.square_rooted(y)
-        return round(numerator/float(denominator),3)
+	if denominator > 0:
+		return round(numerator/float(denominator),3)
+	else:
+		return 0
     
     #Return last measurement round of gateway performances
     def getRecentGateways(self,ts):
@@ -373,7 +376,7 @@ class NeighborManager:
             if len(self.selection_candidates) == 0:
                 return
             elif len(self.selection_candidates) == 1:
-                self.selected_gateway = self.selection_candidates[0]
+                self.selected_gateway = next(iter(self.selection_candidates))
             else:
                 gws = random.sample(set(self.selection_candidates), 2)
                 gw1 = [x for x in gatewayTable if x.address == gws[0]][0]
@@ -436,14 +439,15 @@ class NeighborManager:
     def printCosineSimilarity(self):
         total = 0
         count1 = 0
-        recent = self.getRecentGateways()
+	sensing_time = datetime.datetime.now()
+        recent = self.getRecentGateways(sensing_time)
         print("=======================COSINE SIMILARITY MEASUREMENT================")
-        #print([x.address for x in recent])
+        print([x.address for x in recent])
         m1 = []
         m2 = []
         for gw in recent:
-            m1.append(float(self.gatewayTable[gw].latency))
-            m2.append(float(self.gatewayTable[gw].actualLatency))
+            m1.append(float(gw.latency))
+            m2.append(float(gw.actualLatency))
         sim = float(self.cosine_similarity(m1,m2))
         
         trust_score =sorted(self.trustScore.items(),key=lambda kv: kv[1])[:self.topK]
