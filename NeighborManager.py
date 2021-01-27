@@ -276,17 +276,10 @@ class NeighborManager:
     def cosine_similarity(self, x,y):
         numerator = sum(a*b for a,b in zip(x,y))
         denominator = self.square_rooted(x)*self.square_rooted(y)
-<<<<<<< HEAD
-	if denominator > 0:
-		return round(numerator/float(denominator),3)
-	else:
-		return 0
-=======
         if denominator >0:
             return round(numerator/float(denominator),3)
         else:
             return 0
->>>>>>> 642e974e9a8ce7a80c2426881a224fc6cbb42a7c
     
     #Return last measurement round of gateway performances
     def getRecentGateways(self,ts):
