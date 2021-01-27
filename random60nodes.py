@@ -16,7 +16,6 @@ class MultiSwitchTopo(Topo):
         addresses3 = ['10.0.0.21', '10.0.0.22', '10.0.0.23', '10.0.0.24','10.0.0.25','10.0.0.26', '10.0.0.27', '10.0.0.28', '10.0.0.29', '10.0.0.30']
         addresses4 = ['10.0.0.31', '10.0.0.32', '10.0.0.33', '10.0.0.34','10.0.0.35','10.0.0.36', '10.0.0.37', '10.0.0.38', '10.0.0.39', '10.0.0.40']
         addresses5 = ['10.0.0.41', '10.0.0.42', '10.0.0.43', '10.0.0.44','10.0.0.45','10.0.0.46', '10.0.0.47', '10.0.0.48', '10.0.0.49', '10.0.0.50']
-        addresses6 = ['10.0.0.51', '10.0.0.52', '10.0.0.53', '10.0.0.54','10.0.0.55','10.0.0.56', '10.0.0.57', '10.0.0.58', '10.0.0.59', '10.0.0.60']
         
         gwAddresses = ['10.0.1.1', '10.0.1.2', '10.0.1.3', '10.0.1.4', '10.0.1.5', '10.0.1.6', '10.0.1.7', '10.0.1.8', '10.0.1.9', '10.0.1.10']
         
@@ -56,9 +55,6 @@ class MultiSwitchTopo(Topo):
             host = self.addHost('h%s' % (len(addresses4)+len(addresses3)+len(addresses2)+len(addresses1)+h+1), ip=addresses5[h])
             self.addLink(host, switch5)
 
-        for h in range(len(addresses6)):
-            host = self.addHost('h%s' % (len(addresses5)+len(addresses4)+len(addresses3)+len(addresses2)+len(addresses1)+h+1), ip=addresses6[h])
-            self.addLink(host, switch6)
 
         self.addLink(switch7, switch1)
         self.addLink(switch8, switch2)
@@ -113,9 +109,14 @@ def simpleTest():
             for n in range(10):
                 randDelay = random.randint(1,3)
                 h.cmdPrint("tc qdisc add dev s4-eth%d root netem delay %dms"%(n+1, randDelay))
+            
+        elif h.name == 's5':
+            for n in range(10):
+                randDelay = random.randint(1,3)
+                h.cmdPrint("tc qdisc add dev s5-eth%d root netem delay %dms"%(n+1, randDelay))
 
         #elif h.name == 's7':
-        #    h.cmdPrint("tc qdisc add dev s1-eth11 root netem delay 5ms")
+        #    h.cmdPrint("tc qdisc add dev s1-eth11 root netem delay 3ms")
 
         #elif h.name == 's8':
         #    h.cmdPrint("tc qdisc add dev s2-eth11 root netem delay 5ms")
@@ -137,7 +138,8 @@ def simpleTest():
             
     for h in net.hosts:
         if h.name.startswith('h') and h.name in ['h1', 'h2', 'h3','h4', 'h5', 'h6', 'h7','h8', 'h9', 'h10', 'h11', 'h12', 'h13', 'h14', 'h15', 'h16', 'h17', 'h18', 'h19', 'h20', 'h21','h22', 'h23', 'h24','h24','h25','h26','h27','h28', 'h29',
-                                                'h30','h31','h32','h33','h34','h35','h36','h37','h38','h39','h40']:
+                                                'h30','h31','h32','h33','h34','h35','h36','h37','h38','h39','h40','h41','h42'
+                                                ,'h43','h44','h45','h46','h47','h48','h49','h50']:
             h.cmdPrint('nohup python main.py %s &'%h.IP())            
             time.sleep(2)
 
